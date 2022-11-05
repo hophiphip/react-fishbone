@@ -1,9 +1,8 @@
 {
   "name": "react-fishbone",
   "version": "0.1.0",
-  "description": "",
-  "main": "dist/index.cjs.js",
-  "module": "dist/index.esm.js",
+  "description": "React fishbone (Ishikawa) diagram component",
+  "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "clean": "rimraf dist",
@@ -13,7 +12,7 @@
   "files": [
     "dist"
   ],
-  "author": "",
+  "author": "hophiphip",
   "license": "ISC",
   "devDependencies": {
     "@types/d3": "^7.4.0",
