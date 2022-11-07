@@ -7,7 +7,9 @@
   "scripts": {
     "clean": "rimraf dist",
     "build": "npm run clean && ts-node scripts/build.ts && tsc --emitDeclarationOnly --outDir dist",
-    "preview": "npm run build && vite serve ./public"
+    "preview": "npm run build && vite serve ./public",
+    "storybook": "start-storybook -p 6006",
+    "build-storybook": "build-storybook"
   },
   "files": [
     "dist"
@@ -15,11 +17,20 @@
   "author": "hophiphip",
   "license": "ISC",
   "devDependencies": {
+    "@babel/core": "^7.20.2",
+    "@storybook/addon-actions": "^6.5.13",
+    "@storybook/addon-essentials": "^6.5.13",
+    "@storybook/addon-interactions": "^6.5.13",
+    "@storybook/addon-links": "^6.5.13",
+    "@storybook/builder-vite": "^0.2.5",
+    "@storybook/react": "^6.5.13",
+    "@storybook/testing-library": "^0.0.13",
     "@types/d3": "^7.4.0",
     "@types/node": "^18.11.9",
     "@types/react": "^18.0.25",
     "@types/react-dom": "^18.0.8",
     "@vitejs/plugin-react": "^2.2.0",
+    "babel-loader": "^8.3.0",
     "chokidar": "^3.5.3",
     "esbuild": "^0.15.13",
     "esbuild-css-modules-plugin": "^2.6.2",
