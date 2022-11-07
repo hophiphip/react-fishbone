@@ -1,7 +1,7 @@
 {
   "name": "@hophiphip/react-fishbone",
   "private": false,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "React fishbone (Ishikawa) diagram component",
   "homepage": "https://github.com/hophiphip/react-fishbone",
   "module": "dist/index.js",
