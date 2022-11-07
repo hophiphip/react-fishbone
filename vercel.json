@@ -4,6 +4,6 @@
     "devCommand": "npm run storybook",
     "installCommand": "npm install",
     "framework": null,
-    "outputDirectory": "storybook-static"
+    "outputDirectory": "/vercel/path0/storybook-static"
 }
   
