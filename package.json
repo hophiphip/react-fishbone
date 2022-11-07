@@ -2,6 +2,7 @@
   "name": "react-fishbone",
   "version": "0.1.0",
   "description": "React fishbone (Ishikawa) diagram component",
+  "homepage": "http://hophiphip.github.io/react-fishbone",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -9,7 +10,9 @@
     "build": "npm run clean && ts-node scripts/build.ts && tsc --emitDeclarationOnly --outDir dist",
     "preview": "npm run build && vite serve ./public",
     "storybook": "start-storybook -p 6006",
-    "build-storybook": "build-storybook"
+    "build-storybook": "build-storybook",
+    "predeploy": "npm run build-storybook",    
+    "deploy-storybook": "gh-pages -d storybook-static"
   },
   "files": [
     "dist"
@@ -34,6 +37,7 @@
     "chokidar": "^3.5.3",
     "esbuild": "^0.15.13",
     "esbuild-css-modules-plugin": "^2.6.2",
+    "gh-pages": "^4.0.0",
     "react-dom": "^18.2.0",
     "react-live": "^3.1.1",
     "rimraf": "^3.0.2",
