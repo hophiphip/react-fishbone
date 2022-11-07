@@ -10,7 +10,7 @@
     "build": "npm run clean && ts-node scripts/build.ts && tsc --emitDeclarationOnly --outDir dist",
     "preview": "npm run build && vite serve ./public",
     "storybook": "start-storybook -p 6006",
-    "build-storybook": "build-storybook"
+    "build-storybook": "build-storybook --output-dir build"
   },
   "files": [
     "dist"
