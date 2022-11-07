@@ -2,9 +2,10 @@
   "name": "react-fishbone",
   "version": "0.1.0",
   "description": "React fishbone (Ishikawa) diagram component",
-  "homepage": "http://hophiphip.github.io/react-fishbone",
+  "homepage": "https://github.com/hophiphip/react-fishbone",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
+  "type": "module",
   "scripts": {
     "clean": "rimraf dist",
     "build": "npm run clean && ts-node scripts/build.ts && tsc --emitDeclarationOnly --outDir dist",
@@ -15,6 +16,17 @@
   "files": [
     "dist"
   ],
+  "keywords": [
+    "React",
+    "fishbone"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hophiphip/react-fishbone"
+  },
+  "bugs": {
+    "url": "https://github.com/hophiphip/react-fishbone/issues"
+  },
   "author": "hophiphip",
   "license": "ISC",
   "devDependencies": {
