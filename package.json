@@ -5,7 +5,6 @@
   "homepage": "https://github.com/hophiphip/react-fishbone",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
-  "type": "module",
   "scripts": {
     "clean": "rimraf dist",
     "build": "npm run clean && ts-node-esm scripts/build.ts && tsc --emitDeclarationOnly --outDir dist",
