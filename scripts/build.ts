@@ -1,9 +1,9 @@
-const path = require('path');
-const { build } = require("esbuild");
+import path from 'path';
+import { build } from "esbuild";
 
-const cssModulesPlugin = require('esbuild-css-modules-plugin');
+import cssModulesPlugin from 'esbuild-css-modules-plugin';
 
-const { dependencies } = require("../package.json");
+import { dependencies } from "../package.json";
 
 const entry = path.resolve(__dirname, "../src/index.ts");
 const target = 'ESNext';
@@ -12,7 +12,6 @@ const options = {
     bundle: true,
     entryPoints: [entry],
     external: Object.keys(dependencies),
-    logLevel: "info",
     minify: true,
     sourcemap: true,
     target: [target],
