@@ -1,3 +1,4 @@
+// Reference: https://github.com/storybookjs/storybook/issues/11587
 module.exports = {
   "stories": [
     "../src/**/*.stories.mdx",
