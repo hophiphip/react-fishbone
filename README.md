@@ -47,18 +47,18 @@ Component usage example
 
 Fishbone diagram node.
 
-| Property | Type                                | Description          |
-|:--------:|:-----------------------------------:|:---------------------|
-| name     | `string`                            | Node text contents   |
-| children | [FishboneNode](#fishbonenode)[]     | Node nested children |
+| Property | Type                                             | Description          |
+|:--------:|:------------------------------------------------:|:---------------------|
+| name     | `string`                                         | Node text contents   |
+| children | [FishboneNode](#fishbonenode)[], `undefined`     | Node nested children |
 
 ### **FishboneProps**
 
 Fishbone component props.
 
-| Property     | Type                           | Description                       |
-|:------------:|:------------------------------:|:----------------------------------|
-| width        | `string`, `number`             | Component width                   |
-| height       | `string`, `number`             | Component height                  |
-| items        | [FishboneNode](#fishbonenode)  | Compoent node items               |
-| wrapperStyle | `React.CSSProperties`          | Component wrapper `<div />` style |
+| Property     | Type                                        | Description                       |
+|:------------:|:-------------------------------------------:|:----------------------------------|
+| width        | `string`, `number`, `undefined`             | Component width                   |
+| height       | `string`, `number`, `undefined`             | Component height                  |
+| items        | [FishboneNode](#fishbonenode), `undefined`  | Compoent node items               |
+| wrapperStyle | `React.CSSProperties`, `undefined`          | Component wrapper `<div />` style |
