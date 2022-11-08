@@ -6,10 +6,10 @@ import {
     LiveEditor,
     LiveError,
     LivePreview
-} from 'react-live'
+} from 'react-live';
 
 import Fishbone from '../dist';
-import '../dist/index.css'
+import '../dist/index.css';
 
 import './index.css';
 
@@ -98,25 +98,25 @@ const editorheightPx = 500 - borderPx;
 const previewheightPx = `calc(100% - ${editorheightPx}px + ${borderPx})`;
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
-  <React.StrictMode>
-    <LiveProvider code={code} scope={scope}>
-        <LiveEditor style={{ 
-            height: editorheightPx, 
-            overflow: 'auto',
-            fontSize: '16px',
-            whiteSpace: 'pre',
-            background: '#322e3c',
-            color: 'white',
-        }}
-        />
-        <LiveError />
-        <LivePreview style={{ 
-            width: '100%', 
-            overflow: 'auto', 
-            height: 'calc(100% - 500px)',
-            borderTop: '1px solid #eee' 
-        }} 
-        />
-    </LiveProvider>
-  </React.StrictMode>
+    <React.StrictMode>
+        <LiveProvider code={code} scope={scope}>
+            <LiveEditor style={{ 
+                height: editorheightPx, 
+                overflow: 'auto',
+                fontSize: '16px',
+                whiteSpace: 'pre',
+                background: '#322e3c',
+                color: 'white',
+            }}
+            />
+            <LiveError />
+            <LivePreview style={{ 
+                width: '100%', 
+                overflow: 'auto', 
+                height: 'calc(100% - 500px)',
+                borderTop: '1px solid #eee' 
+            }} 
+            />
+        </LiveProvider>
+    </React.StrictMode>
 );
