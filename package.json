@@ -2,16 +2,18 @@
   "name": "@hophiphip/react-fishbone",
   "private": false,
   "version": "0.2.0",
+  "type": "module",
   "description": "React fishbone (Ishikawa) diagram component",
   "homepage": "https://github.com/hophiphip/react-fishbone",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx --config ./.eslintrc.json",
     "clean": "rimraf dist",
     "build": "npm run clean && ts-node-esm scripts/build.ts && tsc --emitDeclarationOnly --outDir dist",
     "preview": "npm run build && vite serve ./public",
-    "storybook": "start-storybook -p 6006",
-    "build-storybook": "build-storybook --output-dir build"
+    "storybook": "cross-env NODE_OPTIONS=--openssl-legacy-provider start-storybook -p 6006",
+    "build-storybook": "cross-env NODE_OPTIONS=--openssl-legacy-provider build-storybook --output-dir build"
   },
   "files": [
     "dist"
@@ -42,11 +44,16 @@
     "@types/node": "^18.11.9",
     "@types/react": "^18.0.25",
     "@types/react-dom": "^18.0.8",
+    "@typescript-eslint/eslint-plugin": "^5.42.1",
+    "@typescript-eslint/parser": "^5.42.1",
     "@vitejs/plugin-react": "^2.2.0",
     "babel-loader": "^8.3.0",
     "chokidar": "^3.5.3",
+    "cross-env": "^7.0.3",
     "esbuild": "^0.15.13",
     "esbuild-css-modules-plugin": "^2.6.2",
+    "eslint": "^8.27.0",
+    "eslint-plugin-react": "^7.31.10",
     "react-dom": "^18.2.0",
     "react-live": "^3.1.1",
     "rimraf": "^3.0.2",
