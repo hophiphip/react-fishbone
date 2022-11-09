@@ -9,7 +9,6 @@ import {
 } from 'react-live';
 
 import Fishbone from '../dist';
-import '../dist/index.css';
 
 import './index.css';
 
@@ -95,7 +94,6 @@ const code = `
 
 const borderPx = 1;
 const editorheightPx = 500 - borderPx;
-const previewheightPx = `calc(100% - ${editorheightPx}px + ${borderPx})`;
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
     <React.StrictMode>
