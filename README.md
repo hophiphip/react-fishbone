@@ -10,11 +10,10 @@ npm i @hophiphip/react-fishbone
 
 ## Usage
 
-Import component and styles
+Import the component
 
 ```tsx
 import Fishbone from '@hophiphip/react-fishbone';
-import '@hophiphip/react-fishbone/dist/index.css';
 ```
 
 Component usage example
