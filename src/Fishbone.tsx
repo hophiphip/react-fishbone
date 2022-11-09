@@ -1,22 +1,111 @@
 import React from 'react';
 import * as d3 from 'd3';
-import { FishboneProps } from './Fishbone.types';
+import { FishboneProps, LineConfig, NodeConfig } from './Fishbone.types';
 
-import './Fishbone.css';
+type Connector = {
+    between: (Node | Connector)[];
+    childIdx?: number;
+    index?: number;
+    maxChildIdx?: number;
+    totalLinks: Link[];
+    vx: number;
+    vy: number;
+    x: number;
+    y: number;
+};
+
+type Node = {
+    index?: number;
+    childIdx?: number;
+    depth?: number;
+    horizontal?: boolean;
+    linkCount?: number;
+    name: string;
+    parent?: Node;
+}
+
+type Link = {
+    index?: number;
+    depth?: number; // Might not be undefined
+    arrow?: boolean;
+    source?: unknown;
+    target?: unknown;
+};
 
 const Fishbone = (props: FishboneProps) => {
     const {
         width = '100%',
         height = '100%',
-        items,
+        items = [],
+        linesConfig = [
+            {
+                color: '#000',
+                strokeWidthPx: 2
+            },
+            {
+                color: '#333',
+                strokeWidthPx: 1,
+            },
+            {
+                color: '#666',
+                strokeWidthPx: 0.5,
+            },
+        ],
+        nodesConfig = [
+            {
+                color: '#000',
+                fontSizeEm: 2,
+            },
+            {
+                color: '#111',
+                fontSizeEm: 1.5,
+            },
+            {
+                color: '#444',
+                fontSizeEm: 1,
+            },
+            {
+                color: '#888',
+                fontSizeEm: 0.9,
+            },
+            {
+                color: '#aaa',
+                fontSizeEm: 0.8,
+            },
+        ],
         wrapperStyle,
     } = props;
 
+    // Just a constant id for arrow def element
+    const arrowId = '#arrow';
     const margin = 50;
 
     const ref = React.useRef<HTMLDivElement>(null);
+    const [isDragging, setIsDragging] = React.useState(false);
 
-    const perNodeTick = (d: any) => {};
+    const lineConfigWithoutOverflow = React.useCallback((index: number | undefined): LineConfig => {
+        if (!index || index < 0) return linesConfig[0];
+
+        const maxIndex = linesConfig.length - 1;
+
+        return linesConfig[
+            // Minimum of `total` and `maxIndex`
+            maxIndex ^ ((index ^ maxIndex) & -(index < maxIndex))
+        ];
+    }, [linesConfig]);
+
+    const nodeConfigWithoutOverflow = React.useCallback((index: number | undefined): NodeConfig => {
+        if (!index || index < 0) return nodesConfig[0];
+
+        const maxIndex = nodesConfig.length - 1;
+
+        return nodesConfig[
+            // Minimum of `total` and `maxINdex`
+            maxIndex ^ ((index ^ maxIndex) & -(index < maxIndex))
+        ];
+    }, [nodesConfig]);
+
+    const perNodeTick = (d: any) => undefined;
     
     const linkScale = d3
         .scaleLog()
@@ -48,18 +137,19 @@ const Fishbone = (props: FishboneProps) => {
             nodes.push(node);
           
             let cx = 0;
-          
-            let between = [node, node.connector],
-                nodeLinks = [
-                    {
-                        source: node,
-                        target: node.connector,
-                        arrow: true,
-                        depth: node.depth || 0,
-                    },
-                ],
-                prev: any,
-                childLinkCount;
+            let between = [node, node.connector];
+            
+            const nodeLinks = [
+                {
+                    source: node,
+                    target: node.connector,
+                    arrow: true,
+                    depth: node.depth || 0,
+                },
+            ];
+
+            let prev: any;
+            let childLinkCount;
           
             if (!node.parent) {
                 nodes.push((prev = { tail: true }));
@@ -120,13 +210,17 @@ const Fishbone = (props: FishboneProps) => {
         }
 
         function tick() {
+            // TODO: Do we need it?
+            if (isDragging) return;
+
             const alpha = force?.alpha();
       
-            let k = 6 * (alpha || 0),
-                width = svgWidth(),
-                height = svgHeight(),
-                a,
-                b;
+            const k = 6 * (alpha || 0);
+            const width = svgWidth();
+            const height = svgHeight();
+
+            let a;
+            let b;
           
             nodes.forEach(function (d) {
                 if (d.root) {
@@ -172,7 +266,7 @@ const Fishbone = (props: FishboneProps) => {
         }
 
         defs
-            .selectAll('marker#arrow')
+            .selectAll(`marker${arrowId}`)
             .data([1])
             .enter()
             .append('marker')
@@ -207,9 +301,16 @@ const Fishbone = (props: FishboneProps) => {
             .append('line')
             .attr('class', (d: any) => `link link-${d.depth}`)
             .attr('marker-end', (d: any) => d.arrow 
-                ? 'url(#arrow)' 
+                ? `url(${arrowId})` 
                 : null
-            );
+            )
+            .style('stroke', (d: Link) => {
+                return lineConfigWithoutOverflow(d.depth).color;
+            })
+            .style('stroke-width', (d: Link) => {
+                const width = lineConfigWithoutOverflow(d.depth).strokeWidthPx; 
+                return `${width}px`;
+            });
 
         node = svg
             .selectAll('.node')
@@ -218,8 +319,15 @@ const Fishbone = (props: FishboneProps) => {
             .append('g')
             .attr('class', (d: any) => `node ${d.root ? 'root' : ''}`)
             .append('text')
-            .attr('class', (d: any) => `label-${d.depth}`)
-            .attr('text-anchor', (d: any) => !d.depth 
+            .attr('class', (d: Node) => `label-${d.depth}`)
+            .style('font-size', (d: Node) => {
+                const size = nodeConfigWithoutOverflow(d.depth).fontSizeEm;
+                return `${size}em`;
+            })
+            .style('fill', (d: Node) => {
+                return nodeConfigWithoutOverflow(d.depth).color;
+            })
+            .attr('text-anchor', (d: Node) => !d.depth 
                 ? 'start' 
                 : d.horizontal 
                     ? 'end' 
@@ -231,7 +339,7 @@ const Fishbone = (props: FishboneProps) => {
                     ? '1em' 
                     : '-.2em'
             )
-            .text((d: any) => d.name)
+            .text((d: Node) => d.name)
             .classed('node', true)
             .classed('fixed', (d: any) => d.fx !== undefined);
 
@@ -246,20 +354,26 @@ const Fishbone = (props: FishboneProps) => {
             force?.alpha(1).restart();
         }
                 
-        function dragstart(event: any) {
+        const dragstart = (event: any) => {
+            setIsDragging(true);
             d3.select(event.sourceEvent.target).classed('fixed', true);
-        }
+        };
                 
         function dragged(event: any, d: any) {
             d.fx = clamp(event.x, 0, svgWidth());
             d.fy = clamp(event.y, 0, svgHeight());
             force?.alpha(1).restart();
         }
+
+        const dragend = () => {
+            setIsDragging(false);
+        };
           
         const drag = d3
             .drag()
             .on('start', dragstart)
-            .on('drag', dragged);
+            .on('drag', dragged)
+            .on('end', dragend);
           
         node.call(drag).on('click', click);
           
