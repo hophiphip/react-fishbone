@@ -12,8 +12,8 @@
     "clean": "rimraf dist",
     "build": "npm run clean && ts-node-esm scripts/build.ts && tsc --emitDeclarationOnly --outDir dist",
     "preview": "npm run build && vite serve ./public",
-    "storybook": "cross-env NODE_OPTIONS=--openssl-legacy-provider start-storybook -p 6006",
-    "build-storybook": "cross-env NODE_OPTIONS=--openssl-legacy-provider build-storybook --output-dir build"
+    "storybook": "start-storybook -p 6006",
+    "build-storybook": "build-storybook --output-dir build"
   },
   "files": [
     "dist"
@@ -49,7 +49,6 @@
     "@vitejs/plugin-react": "^2.2.0",
     "babel-loader": "^8.3.0",
     "chokidar": "^3.5.3",
-    "cross-env": "^7.0.3",
     "esbuild": "^0.15.13",
     "esbuild-css-modules-plugin": "^2.6.2",
     "eslint": "^8.27.0",
