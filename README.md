@@ -61,3 +61,18 @@ Fishbone component props.
 | height       | `string`, `number`, `undefined`             | Component height                  |
 | items        | [FishboneNode](#fishbonenode), `undefined`  | Compoent node items               |
 | wrapperStyle | `React.CSSProperties`, `undefined`          | Component wrapper `<div />` style |
+
+### Storybook 
+
+Building/Running storybook might cause an error
+
+```text
+Error: error:0308010C:digital envelope routines::unsupported
+```
+
+That error appears in `NodeJS` versions `> 16`. Temporary solution is to set `NODE_OPTIONS` to `--openssl-legacy-provider`
+
+```console
+cross-env NODE_OPTIONS=--openssl-legacy-provider npm run storybook
+cross-env NODE_OPTIONS=--openssl-legacy-provider npm run build-storybook
+```
