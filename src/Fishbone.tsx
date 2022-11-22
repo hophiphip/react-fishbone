@@ -403,7 +403,7 @@ const Fishbone = (props: FishboneProps) => {
         if (!items) return;
 
         initialize();
-    }, []);
+    }, [ref, items]);
 
     return (
         <div ref={ref} style={wrapperStyle}>
