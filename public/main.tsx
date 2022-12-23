@@ -8,7 +8,7 @@ import {
     LivePreview
 } from 'react-live';
 
-import Fishbone from '../dist';
+import Fishbone from '../src/Fishbone';
 
 import './index.css';
 
