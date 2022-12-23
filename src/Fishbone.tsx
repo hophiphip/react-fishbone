@@ -32,6 +32,9 @@ type Link = {
     target?: unknown;
 };
 
+const arrowElementId = '#arrow';
+const margin = 50;
+
 const Fishbone = (props: FishboneProps) => {
     const {
         width = '100%',
@@ -76,10 +79,6 @@ const Fishbone = (props: FishboneProps) => {
         wrapperStyle,
     } = props;
 
-    // Just a constant id for arrow def element
-    const arrowId = '#arrow';
-    const margin = 50;
-
     const ref = React.useRef<HTMLDivElement>(null);
     const [isDragging, setIsDragging] = React.useState(false);
 
@@ -105,7 +104,7 @@ const Fishbone = (props: FishboneProps) => {
         ];
     }, [nodesConfig]);
 
-    const perNodeTick = (d: any) => undefined;
+    const perNodeTick = (d: unknown) => undefined;
     
     const linkScale = d3
         .scaleLog()
@@ -266,7 +265,7 @@ const Fishbone = (props: FishboneProps) => {
         }
 
         defs
-            .selectAll(`marker${arrowId}`)
+            .selectAll(`marker${arrowElementId}`)
             .data([1])
             .enter()
             .append('marker')
@@ -301,7 +300,7 @@ const Fishbone = (props: FishboneProps) => {
             .append('line')
             .attr('class', (d: any) => `link link-${d.depth}`)
             .attr('marker-end', (d: any) => d.arrow 
-                ? `url(${arrowId})` 
+                ? `url(${arrowElementId})` 
                 : null
             )
             .style('stroke', (d: Link) => {
@@ -403,7 +402,15 @@ const Fishbone = (props: FishboneProps) => {
         if (!items) return;
 
         initialize();
-    }, [ref, items]);
+    }, [
+        ref,
+        width,
+        height, 
+        items,
+        linesConfig,
+        nodesConfig,
+        wrapperStyle,
+    ]);
 
     return (
         <div ref={ref} style={wrapperStyle}>
