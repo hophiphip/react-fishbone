@@ -74,6 +74,12 @@ function isTextNode(node: Node): node is TextNode {
 const arrowElementId = 'arrow';
 const margin = 50;
 
+const nodeClassName = 'node';
+const tailNodeClassName = 'tail';
+const connectorNodeClassName = 'connector';
+const rootNodeClassName = 'root';
+const linkClassName = 'link';
+
 const linkScale = d3
     .scaleLog()
     .domain([1, 5])
@@ -125,12 +131,12 @@ function clamp(value: number, low: number, high: number) {
 
 function getNodeClass(node: Node) {
     if (isTailNode(node))
-        return 'node tail';
+        return `${nodeClassName} ${tailNodeClassName}`;
 
     if (isConnectorNode(node))
-        return 'node connector';
+        return `${nodeClassName} ${connectorNodeClassName}`;
 
-    return `node${node.root ? ' root' : ''}`;
+    return `${nodeClassName}${node.root ? ` ${rootNodeClassName}` : ''}`;
 }
 
 function getNodeLabelClass(node: Node) {
@@ -176,7 +182,7 @@ function getIsNodeFixed(node: Node) {
 }
 
 function getLinkClass(link: Link) {
-    return `link link-${link.depth}`;
+    return `${linkClassName} ${linkClassName}-${link.depth}`;
 }
 
 function getLinkDistance(link: Link) {
@@ -239,7 +245,7 @@ const Fishbone = (props: FishboneProps) => {
         const nodes: Node[] = [];
         const links: Link[] = [];
 
-        const datum = { ...items } as TextNode;
+        const datum = items;
 
         const svg = d3
             .select(containerRef.current)
@@ -401,7 +407,7 @@ const Fishbone = (props: FishboneProps) => {
             .data([1])
             .enter()
             .append('marker')
-            .attr('id', 'arrow')
+            .attr('id', arrowElementId)
             .attr('viewBox', '0 -5 10 10')
             .attr('refX', 10)
             .attr('refY', 0)
@@ -411,7 +417,9 @@ const Fishbone = (props: FishboneProps) => {
             .append('path')
             .attr('d', 'M0,-5L10,0L0,5');
 
-        initializeRootNode(datum);
+        if (datum) {
+            initializeRootNode(datum);
+        }
 
         const linkForce = d3
             .forceLink<Node, Link>()
@@ -423,7 +431,7 @@ const Fishbone = (props: FishboneProps) => {
             .force('link', linkForce);
 
         const linkSelect = svg
-            .selectAll('.link')
+            .selectAll(`.${linkClassName}`)
             .data(links)
             .enter()
             .append('line')
@@ -456,7 +464,7 @@ const Fishbone = (props: FishboneProps) => {
 
         const nodesSelect = 
             svg
-                .selectAll('.node')
+                .selectAll(`.${nodeClassName}`)
                 .data(nodes)
                 .enter()
                 .append('g')
