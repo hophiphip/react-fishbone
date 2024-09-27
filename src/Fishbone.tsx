@@ -1,32 +1,72 @@
-import React, { DragEvent, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import * as d3 from 'd3';
-import type { FishboneProps, LineConfig, NodeConfig } from './Fishbone.types';
+import type { FishboneNode, FishboneProps, LineConfig, NodeConfig } from './Fishbone.types';
 
-interface Node extends d3.SimulationNodeDatum {
-    id?: number;
-    childIdx?: number;
-    maxChildIdx?: number;
-    depth?: number;
-    horizontal?: boolean;
-    vertical?: boolean;
-    linkCount?: number;
-    name?: string;
-    parent?: Node;
-    root?: boolean;
-    region?: number;
-    tail?: boolean;
-    totalLinks?: number[];
-    connector?: Node;
-    children?: Node[];
-    between?: [Node, Node];
+export interface RootNode extends d3.SimulationNodeDatum {
+    maxChildIdx: number;
+    childIdx?: never;
+    depth: 0;
+    vertical: false;
+    name: string;
+    root: true;
+    connector?: never;
+    children?: FishboneNode[]; 
 }
 
-interface Link extends d3.SimulationLinkDatum<Node> {
-    id?: number;
+export interface TextNode extends Omit<
+    RootNode, 
+    'childIdx' | 'root' | 'depth' | 'vertical' | 'connector'
+> {
+    childIdx: number;
+    depth: number;
+    vertical: boolean;
+    parent: Node;
+    region: number;
+    root?: never;
+    connector: ConnectorNode;
+}
+
+export interface ConnectorNode extends Omit<
+    RootNode, 
+    'childIdx' | 'depth' | 'vertical' | 'name' | 'root' | 'connector' | 'children'
+> {
+    maxChildIdx: number;
+    childIdx: number;
+    between: [TailNode, RootNode] | [TextNode, ConnectorNode];
+}
+
+export interface TailNode extends Omit<
+    TextNode,
+    'childIdx' | 'depth' | 'vertical' | 'parent' | 'region' | 'root' | 'connector' | 'maxChildIdx' | 'name' | 'children'
+> {
+    tail: true,
+}
+
+export type Node = RootNode | TextNode | ConnectorNode | TailNode;
+
+export interface Link extends d3.SimulationLinkDatum<Node> {
     depth: number;
     arrow: boolean;
-    source: Node;
-    target: Node;
+    source: TailNode | TextNode;
+    target: RootNode | ConnectorNode | TextNode;
+}
+
+/** -------------------------------------------------------------------- */
+
+function isRootNode(node: Node): node is RootNode {
+    return 'root' in node && node.root === true;
+}
+
+function isConnectorNode(node: Node): node is ConnectorNode {
+    return 'between' in node;
+}
+
+function isTailNode(node: Node): node is TailNode {
+    return 'tail' in node && node.tail === true;
+}
+
+function isTextNode(node: Node): node is TextNode {
+    return 'name' in node;
 }
 
 /** -------------------------------------------------------------------- */
@@ -84,28 +124,51 @@ function clamp(value: number, low: number, high: number) {
 }
 
 function getNodeClass(node: Node) {
-    return `node ${node.root ? 'root' : ''}`;
+    if (isTailNode(node))
+        return 'node tail';
+
+    if (isConnectorNode(node))
+        return 'node connector';
+
+    return `node${node.root ? ' root' : ''}`;
 }
 
 function getNodeLabelClass(node: Node) {
-    return `label-${node.depth}`;
+    if (isTextNode(node))
+        return `label-${node.depth}`;
+
+    return null;
 }
 
 function getNodeTextAnchor(node: Node) {
-    return !node.depth 
-        ? 'start' 
-        : node.horizontal 
-            ? 'end' 
-            : 'middle';
+    if (isTextNode(node)) {
+        return !node.depth 
+            ? 'start' 
+            : !node.vertical 
+                ? 'end' 
+                : 'middle';
+    }
+
+    return null;
 }
 
 function getNodeDy(node: Node) {
-    return node.horizontal 
-        ? '.35em' 
-        : node.region === 1 
-            ? '1em' 
-            : '-.2em';
+    if (isTextNode(node)) {
+        return !node.vertical 
+            ? '.35em' 
+            : node.region === 1 
+                ? '1em' 
+                : '-.2em';
+    }
 
+    return null;
+}
+
+function getNodeText(node: Node) {
+    if (isTextNode(node))
+        return node.name;
+
+    return null;
 }
 
 function getIsNodeFixed(node: Node) {
@@ -117,7 +180,7 @@ function getLinkClass(link: Link) {
 }
 
 function getLinkDistance(link: Link) {
-    return (link.target.maxChildIdx! + 1) * linkScale(link.depth + 1);
+    return (link.target.maxChildIdx + 1) * linkScale(link.depth + 1);
 }
 
 function getLinkSelectMarkerEnd(link: Link) {
@@ -132,9 +195,7 @@ const Fishbone = (props: FishboneProps) => {
     const {
         width = '100%',
         height = '100%',
-        items = {
-            name: 'Test',
-        },
+        items,
         linesConfig = defaultLinesConfig,
         nodesConfig = defaultNodesConfig,
         wrapperStyle,
@@ -156,10 +217,12 @@ const Fishbone = (props: FishboneProps) => {
     }, [nodesConfig]);
 
     const getNodeFontSize = useCallback((node: Node) => {
-        return nodeConfigByDepth(node.depth).fontSizeEm;
+        if (isConnectorNode(node) || isTailNode(node)) return null;
+        return `${nodeConfigByDepth(node.depth).fontSizeEm}em`;
     }, [nodeConfigByDepth]);
 
     const getNodeFill = useCallback((node: Node) => {
+        if (isConnectorNode(node) || isTailNode(node)) return null;
         return nodeConfigByDepth(node.depth).color;
     }, [nodeConfigByDepth]);
 
@@ -176,12 +239,13 @@ const Fishbone = (props: FishboneProps) => {
         const nodes: Node[] = [];
         const links: Link[] = [];
 
+        const datum = { ...items } as TextNode;
+
         const svg = d3
             .select(containerRef.current)
             .append('svg')
             .attr('width', width)
-            .attr('height', height)
-            .datum(items);
+            .attr('height', height);
 
         const defs = svg.append('defs').data([1]);
         
@@ -190,82 +254,146 @@ const Fishbone = (props: FishboneProps) => {
         const svgWidth = () => svgElement?.clientWidth || 0;
         const svgHeight = () => svgElement?.clientHeight || 0;
 
-        function buildNodes(node: Node) {
+        function initializeTextNode(node: TextNode) {
             nodes.push(node);
-          
-            let cx = 0;
-            let between: [Node, Node] = [node, node.connector!];
-            
-            const nodeLinks = [
+
+            const nodeLinks: Link[] = [
                 {
                     source: node,
                     target: node.connector,
                     arrow: true,
-                    depth: node.depth || 0,
+                    depth: node.depth,
                 },
             ];
 
-            let prev: Node | null;
+            let prev: ConnectorNode | null;
             let childLinkCount: number | null;
-          
-            if (!node.parent) {
-                nodes.push((prev = { tail: true }));
-                between = [prev, node];
-                nodeLinks[0].source = prev;
-                nodeLinks[0].target = node;
-                node.vertical = false;
-                node.depth = 0;
-                node.root = true;
-                node.totalLinks = [];
-            } else {
-                if (!node.connector) {
-                    node.connector = {};
-                }
-                node.connector.maxChildIdx = 0;
-                node.connector.totalLinks = [];
-            }
-          
-            node.linkCount = 1;
-          
-            node.children?.forEach(function (child: Node, idx: number) {
-                child.parent = node;
-                child.depth = (node.depth || 0) + 1;
-                child.childIdx = idx;
-                child.region = node.region ? node.region : idx % 2 ? -1 : 1;
-                child.horizontal = !node.horizontal;
-                child.vertical = !node.vertical;
-          
-                if (node.root && prev && !prev.tail) {
-                    nodes.push(
-                        (child.connector = {
-                            between: between,
-                            childIdx: prev.childIdx,
-                        })
-                    );
-                    prev = null;
-                } else {
-                    nodes.push(
-                        (prev = child.connector = { between: between, childIdx: cx++ })
-                    );
-                }
-          
+
+            let cx = 0;
+            const between: ConnectorNode['between'] = [node, node.connector];
+            let nodeLinkCount = 1;
+
+            node.children?.forEach((childFishboneNode, childIndex) => {
+                const childConnector: ConnectorNode = {
+                    between,
+                    childIdx: cx++,
+                    maxChildIdx: 0,
+                };
+
+                const childNode: TextNode = {
+                    parent: node,
+                    depth: node.depth + 1,
+                    childIdx: childIndex,
+                    region: node.region,
+                    vertical: !node.vertical,
+                    connector: childConnector,
+                    maxChildIdx: 0,
+                    name: childFishboneNode.name,
+                    children: childFishboneNode.children,
+                };
+
+                prev = childConnector;
+                nodes.push(prev);
+
                 nodeLinks.push({
-                    source: child,
-                    target: child.connector,
-                    depth: child.depth,
+                    source: childNode,
+                    target: childNode.connector,
+                    depth: childNode.depth,
                     arrow: false,
                 });
-          
-                childLinkCount = buildNodes(child);
-                node.linkCount += childLinkCount;
-                between[1].totalLinks.push(childLinkCount);
+
+                childLinkCount = initializeTextNode(childNode);
+                nodeLinkCount += childLinkCount;
             });
-          
+
             between[1].maxChildIdx = cx;
-          
-            Array.prototype.unshift.apply(links, nodeLinks);
-          
-            return node.linkCount;
+            links.unshift(...nodeLinks);
+
+            return nodeLinkCount;
+        }
+
+        function initializeRootNode(node: FishboneNode) {
+            const root: RootNode = {
+                depth: 0,
+                maxChildIdx: 1,
+                name: node.name,
+                root: true,
+                vertical: false,
+                children: node.children,
+            };
+
+            const tail: TailNode = {
+                tail: true,
+            };
+
+            nodes.push(root);
+            nodes.push(tail);
+
+            const nodeLinks: Link[] = [
+                {
+                    source: tail,
+                    target: root,
+                    arrow: true,
+                    depth: root.depth,
+                }
+            ];
+
+            let prev: TailNode | TextNode | null = tail;
+            const between: ConnectorNode['between'] = [prev, root];
+            let cx = 0;
+            let childLinkCount: number | null;
+            let nodeLinkCount = 1;
+
+            node.children?.forEach((childFishboneNode, childIndex) => {
+                const childConnector: ConnectorNode = (() => {
+                    if (prev && !isTailNode(prev)) {
+                        const connector = {
+                            between,
+                            childIdx: prev.childIdx,
+                            maxChildIdx: 0,
+                        };
+
+                        prev = null;
+
+                        return connector;
+                    } else  {
+                        return {
+                            between,
+                            childIdx: cx++,
+                            maxChildIdx: 0,
+                        };
+                    }
+                })();
+
+                const childNode: TextNode = {
+                    parent: root,
+                    depth: root.depth + 1,
+                    childIdx: childIndex,
+                    region: childIndex % 2 ? -1 : 1,
+                    vertical: !root.vertical,
+                    name: childFishboneNode.name,
+                    children: childFishboneNode.children,
+                    maxChildIdx: 0,
+                    connector: childConnector,
+                };
+
+                nodes.push(childConnector);
+
+                nodeLinks.push({
+                    source: childNode,
+                    target: childNode.connector,
+                    depth: childNode.depth,
+                    arrow: false,
+                });
+
+                childLinkCount = initializeTextNode(childNode);
+                nodeLinkCount += childLinkCount;
+            });
+
+            between[1].maxChildIdx = cx;
+            links.unshift(...nodeLinks);
+
+            return nodeLinkCount;
         }
 
         defs
@@ -283,11 +411,10 @@ const Fishbone = (props: FishboneProps) => {
             .append('path')
             .attr('d', 'M0,-5L10,0L0,5');
 
-        buildNodes(svg.datum());
+        initializeRootNode(datum);
 
         const linkForce = d3
             .forceLink<Node, Link>()
-            .id((link) => link.id!)
             .links(links)
             .distance(getLinkDistance);
 
@@ -340,7 +467,7 @@ const Fishbone = (props: FishboneProps) => {
                 .style('fill', getNodeFill)
                 .attr('text-anchor', getNodeTextAnchor)
                 .attr('dy', getNodeDy)
-                .text((node) => node.name!)
+                .text(getNodeText)
                 .classed('node', true)
                 .classed('fixed', getIsNodeFixed);
           
@@ -364,39 +491,33 @@ const Fishbone = (props: FishboneProps) => {
             const width = svgWidth();
             const height = svgHeight();
 
-            let a;
-            let b;
-          
             nodes.forEach((node) => {
-                if (node.root) {
-                    node.x = width - (margin + root.getBBox().width);
-                }
-
-                if (node.tail) {
+                if (isTailNode(node)) {
                     node.x = margin;
                     node.y = height / 2;
                 }
+                else if (isConnectorNode(node)) {
+                    const source = node.between[0];
+                    const target = node.between[1];
           
-                if (node.depth === 1) {
-                    node.y = node.region === -1 ? margin : height - margin;
-                    node.x -= 10 * k;
-                }
-          
-                if (node.vertical) {
-                    node.y += k * node.region;
-                }
-          
-                if (node.depth) {
-                    node.x -= k;
-                }
-          
-                if (node.between) {
-                    a = node.between[0];
-                    b = node.between[1];
-          
-                    node.x = b.x - ((1 + node.childIdx) * (b.x - a.x)) / (b.maxChildIdx + 1);
-                    node.y = b.y - ((1 + node.childIdx) * (b.y - a.y)) / (b.maxChildIdx + 1);
-                }          
+                    node.x = target.x! - ((1 + node.childIdx!) * (target.x! - source.x!)) / (target.maxChildIdx! + 1);
+                    node.y = target.y! - ((1 + node.childIdx!) * (target.y! - source.y!)) / (target.maxChildIdx! + 1);
+                } else if (isRootNode(node)) {
+                    node.x = width - (margin + root.getBBox().width);
+                } else {
+                    if (node.depth === 1) {
+                        node.y = node.region === -1 ? margin : height - margin;
+                        node.x! -= 10 * k;
+                    }
+            
+                    if (node.vertical) {
+                        node.y! += k * node.region!;
+                    }
+            
+                    if (node.depth) {
+                        node.x! -= k;
+                    } 
+                }     
             });
           
             nodesSelect
