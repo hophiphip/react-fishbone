@@ -30,7 +30,7 @@
     "url": "https://github.com/hophiphip/react-fishbone/issues"
   },
   "author": "hophiphip",
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {
     "@babel/core": "^7.20.2",
     "@storybook/addon-actions": "^6.5.13",
