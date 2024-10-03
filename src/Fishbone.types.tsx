@@ -24,4 +24,5 @@ export type FishboneProps = {
     linesConfig?: NotEmptyReadonlyArray<LineConfig>;
     nodesConfig?: NotEmptyReadonlyArray<NodeConfig>;
     wrapperStyle?: React.CSSProperties;
+    angleCoefficient?: number;
 };

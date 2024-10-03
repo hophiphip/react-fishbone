@@ -205,6 +205,7 @@ const Fishbone = (props: FishboneProps) => {
         linesConfig = defaultLinesConfig,
         nodesConfig = defaultNodesConfig,
         wrapperStyle,
+        angleCoefficient = 6,
     } = props;
 
     const containerRef = React.useRef<HTMLDivElement>(null);
@@ -426,10 +427,10 @@ const Fishbone = (props: FishboneProps) => {
             .links(links)
             .distance(getLinkDistance);
 
-        const force = d3.forceSimulation(nodes)
+        const simultation = d3.forceSimulation(nodes)
             .nodes(nodes)
             .force('link', linkForce);
-
+            
         const linkSelect = svg
             .selectAll(`.${linkClassName}`)
             .data(links)
@@ -444,7 +445,7 @@ const Fishbone = (props: FishboneProps) => {
             delete d.fx;
             delete d.fy;
             d3.select(event.target).classed('fixed', false);
-            force?.alpha(1).restart();
+            simultation.alpha(1).restart();
         }
                     
         const dragstart = (event: any) => {
@@ -455,7 +456,7 @@ const Fishbone = (props: FishboneProps) => {
         function dragged(event: MouseEvent, d: Node) {
             d.fx = clamp(event.x, 0, svgWidth());
             d.fy = clamp(event.y, 0, svgHeight());
-            force?.alpha(1).restart();
+            simultation.alpha(1).restart();
         }
     
         const dragend = () => {
@@ -493,9 +494,9 @@ const Fishbone = (props: FishboneProps) => {
         function tick() {
             if (isDragging) return;
 
-            const alpha = force?.alpha();
+            const alpha = simultation.alpha();
       
-            const k = 6 * (alpha || 0);
+            const k = angleCoefficient * alpha;
             const width = svgWidth();
             const height = svgHeight();
 
@@ -524,7 +525,7 @@ const Fishbone = (props: FishboneProps) => {
             
                     if (node.depth) {
                         node.x! -= k;
-                    } 
+                    }
                 }     
             });
           
@@ -538,7 +539,7 @@ const Fishbone = (props: FishboneProps) => {
                 .attr('y2', (link) => link.target.y!);
         }
 
-        force.on('tick', tick);
+        simultation.on('tick', tick);
           
         d3.select(window).on('resize', function () {
             svg
@@ -546,7 +547,7 @@ const Fishbone = (props: FishboneProps) => {
                 .attr('height', svgHeight());
               
             const resizeFinished = setTimeout(() => {
-                force?.restart();
+                simultation.restart();
             }, 200);
               
             clearTimeout(resizeFinished);
