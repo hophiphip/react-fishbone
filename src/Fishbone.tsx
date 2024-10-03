@@ -1,129 +1,258 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import * as d3 from 'd3';
-import { FishboneProps, LineConfig, NodeConfig } from './Fishbone.types';
+import type { FishboneNode, FishboneProps, LineConfig, NodeConfig } from './Fishbone.types';
 
-type Connector = {
-    between: (Node | Connector)[];
-    childIdx?: number;
-    index?: number;
-    maxChildIdx?: number;
-    totalLinks: Link[];
-    vx: number;
-    vy: number;
-    x: number;
-    y: number;
-};
-
-type Node = {
-    index?: number;
-    childIdx?: number;
-    depth?: number;
-    horizontal?: boolean;
-    linkCount?: number;
+export interface RootNode extends d3.SimulationNodeDatum {
+    maxChildIdx: number;
+    childIdx?: never;
+    depth: 0;
+    vertical: false;
     name: string;
-    parent?: Node;
+    root: true;
+    connector?: never;
+    children?: FishboneNode[]; 
 }
 
-type Link = {
-    index?: number;
-    depth?: number; // Might not be undefined
-    arrow?: boolean;
-    source?: unknown;
-    target?: unknown;
-};
+export interface TextNode extends Omit<
+    RootNode, 
+    'childIdx' | 'root' | 'depth' | 'vertical' | 'connector'
+> {
+    childIdx: number;
+    depth: number;
+    vertical: boolean;
+    parent: Node;
+    region: number;
+    root?: never;
+    connector: ConnectorNode;
+}
 
-const arrowElementId = '#arrow';
+export interface ConnectorNode extends Omit<
+    RootNode, 
+    'childIdx' | 'depth' | 'vertical' | 'name' | 'root' | 'connector' | 'children'
+> {
+    maxChildIdx: number;
+    childIdx: number;
+    between: [TailNode, RootNode] | [TextNode, ConnectorNode];
+}
+
+export interface TailNode extends Omit<
+    TextNode,
+    'childIdx' | 'depth' | 'vertical' | 'parent' | 'region' | 'root' | 'connector' | 'maxChildIdx' | 'name' | 'children'
+> {
+    tail: true,
+}
+
+export type Node = RootNode | TextNode | ConnectorNode | TailNode;
+
+export interface Link extends d3.SimulationLinkDatum<Node> {
+    depth: number;
+    arrow: boolean;
+    source: TailNode | TextNode;
+    target: RootNode | ConnectorNode | TextNode;
+}
+
+/** -------------------------------------------------------------------- */
+
+function isRootNode(node: Node): node is RootNode {
+    return 'root' in node && node.root === true;
+}
+
+function isConnectorNode(node: Node): node is ConnectorNode {
+    return 'between' in node;
+}
+
+function isTailNode(node: Node): node is TailNode {
+    return 'tail' in node && node.tail === true;
+}
+
+function isTextNode(node: Node): node is TextNode {
+    return 'name' in node;
+}
+
+/** -------------------------------------------------------------------- */
+
+const arrowElementId = 'arrow';
 const margin = 50;
+
+const nodeClassName = 'node';
+const tailNodeClassName = 'tail';
+const connectorNodeClassName = 'connector';
+const rootNodeClassName = 'root';
+const linkClassName = 'link';
+
+const linkScale = d3
+    .scaleLog()
+    .domain([1, 5])
+    .range([60, 30]);
+
+const defaultLinesConfig = [
+    {
+        color: '#000',
+        strokeWidthPx: 2
+    },
+    {
+        color: '#333',
+        strokeWidthPx: 1,
+    },
+    {
+        color: '#666',
+        strokeWidthPx: 0.5,
+    },
+];
+    
+const defaultNodesConfig = [
+    {
+        color: '#000',
+        fontSizeEm: 2,
+    },
+    {
+        color: '#111',
+        fontSizeEm: 1.5,
+    },
+    {
+        color: '#444',
+        fontSizeEm: 1,
+    },
+    {
+        color: '#888',
+        fontSizeEm: 0.9,
+    },
+    {
+        color: '#aaa',
+        fontSizeEm: 0.8,
+    },
+];
+
+/** -------------------------------------------------------------------- */
+
+function clamp(value: number, low: number, high: number) {
+    return value < low ? low : value > high ? high : value;
+}
+
+function getNodeClass(node: Node) {
+    if (isTailNode(node))
+        return `${nodeClassName} ${tailNodeClassName}`;
+
+    if (isConnectorNode(node))
+        return `${nodeClassName} ${connectorNodeClassName}`;
+
+    return `${nodeClassName}${node.root ? ` ${rootNodeClassName}` : ''}`;
+}
+
+function getNodeLabelClass(node: Node) {
+    if (isTextNode(node))
+        return `label-${node.depth}`;
+
+    return null;
+}
+
+function getNodeTextAnchor(node: Node) {
+    if (isTextNode(node)) {
+        return !node.depth 
+            ? 'start' 
+            : !node.vertical 
+                ? 'end' 
+                : 'middle';
+    }
+
+    return null;
+}
+
+function getNodeDy(node: Node) {
+    if (isTextNode(node)) {
+        return !node.vertical 
+            ? '.35em' 
+            : node.region === 1 
+                ? '1em' 
+                : '-.2em';
+    }
+
+    return null;
+}
+
+function getNodeText(node: Node) {
+    if (isTextNode(node))
+        return node.name;
+
+    return null;
+}
+
+function getIsNodeFixed(node: Node) {
+    return node.fx !== undefined;
+}
+
+function getLinkClass(link: Link) {
+    return `${linkClassName} ${linkClassName}-${link.depth}`;
+}
+
+function getLinkDistance(link: Link) {
+    return (link.target.maxChildIdx + 1) * linkScale(link.depth + 1);
+}
+
+function getLinkSelectMarkerEnd(link: Link) {
+    return link.arrow 
+        ? `url(#${arrowElementId})` 
+        : null;
+}
+
+/** -------------------------------------------------------------------- */
 
 const Fishbone = (props: FishboneProps) => {
     const {
         width = '100%',
         height = '100%',
-        items = [],
-        linesConfig = [
-            {
-                color: '#000',
-                strokeWidthPx: 2
-            },
-            {
-                color: '#333',
-                strokeWidthPx: 1,
-            },
-            {
-                color: '#666',
-                strokeWidthPx: 0.5,
-            },
-        ],
-        nodesConfig = [
-            {
-                color: '#000',
-                fontSizeEm: 2,
-            },
-            {
-                color: '#111',
-                fontSizeEm: 1.5,
-            },
-            {
-                color: '#444',
-                fontSizeEm: 1,
-            },
-            {
-                color: '#888',
-                fontSizeEm: 0.9,
-            },
-            {
-                color: '#aaa',
-                fontSizeEm: 0.8,
-            },
-        ],
+        items,
+        linesConfig = defaultLinesConfig,
+        nodesConfig = defaultNodesConfig,
         wrapperStyle,
+        angleCoefficient = 6,
     } = props;
 
-    const ref = React.useRef<HTMLDivElement>(null);
+    const containerRef = React.useRef<HTMLDivElement>(null);
     const [isDragging, setIsDragging] = React.useState(false);
 
-    const lineConfigWithoutOverflow = React.useCallback((index: number | undefined): LineConfig => {
-        if (!index || index < 0) return linesConfig[0];
-
+    const lineConfigByDepth = React.useCallback((depth: number | undefined | null): LineConfig => {
+        if (depth === undefined || depth === null || depth < 0) return linesConfig[0];
         const maxIndex = linesConfig.length - 1;
-
-        return linesConfig[
-            // Minimum of `total` and `maxIndex`
-            maxIndex ^ ((index ^ maxIndex) & -(index < maxIndex))
-        ];
+        return linesConfig[Math.min(maxIndex, depth)];
     }, [linesConfig]);
 
-    const nodeConfigWithoutOverflow = React.useCallback((index: number | undefined): NodeConfig => {
-        if (!index || index < 0) return nodesConfig[0];
-
+    const nodeConfigByDepth = React.useCallback((depth: number | undefined | null): NodeConfig => {
+        if (depth === undefined || depth === null || depth < 0) return nodesConfig[0];
         const maxIndex = nodesConfig.length - 1;
-
-        return nodesConfig[
-            // Minimum of `total` and `maxINdex`
-            maxIndex ^ ((index ^ maxIndex) & -(index < maxIndex))
-        ];
+        return nodesConfig[Math.min(maxIndex, depth)];
     }, [nodesConfig]);
 
-    const perNodeTick = (d: unknown) => undefined;
-    
-    const linkScale = d3
-        .scaleLog()
-        .domain([1, 5])
-        .range([60, 30]);
+    const getNodeFontSize = useCallback((node: Node) => {
+        if (isConnectorNode(node) || isTailNode(node)) return null;
+        return `${nodeConfigByDepth(node.depth).fontSizeEm}em`;
+    }, [nodeConfigByDepth]);
+
+    const getNodeFill = useCallback((node: Node) => {
+        if (isConnectorNode(node) || isTailNode(node)) return null;
+        return nodeConfigByDepth(node.depth).color;
+    }, [nodeConfigByDepth]);
+
+    const getLinkStroke = useCallback((link: Link) => {
+        return lineConfigByDepth(link.depth).color;
+    }, [lineConfigByDepth]);
+
+    const getLinkStrokeWidth = useCallback((link: Link) => {
+        const width = lineConfigByDepth(link.depth).strokeWidthPx; 
+        return `${width}px`;
+    }, [lineConfigByDepth]);
 
     const initialize = () => {
-        const nodes: any[] = [];
-        const links: any[] = [];
-        let node: any, link: any, root: any;
+        const nodes: Node[] = [];
+        const links: Link[] = [];
 
-        let force: d3.Simulation<any, undefined> | undefined;
+        const datum = items;
 
         const svg = d3
-            .select(ref.current)
+            .select(containerRef.current)
             .append('svg')
             .attr('width', width)
-            .attr('height', height)
-            .datum(items);
+            .attr('height', height);
 
         const defs = svg.append('defs').data([1]);
         
@@ -132,144 +261,154 @@ const Fishbone = (props: FishboneProps) => {
         const svgWidth = () => svgElement?.clientWidth || 0;
         const svgHeight = () => svgElement?.clientHeight || 0;
 
-        function buildNodes(node: any) {
+        function initializeTextNode(node: TextNode) {
             nodes.push(node);
-          
-            let cx = 0;
-            let between = [node, node.connector];
-            
-            const nodeLinks = [
+
+            const nodeLinks: Link[] = [
                 {
                     source: node,
                     target: node.connector,
                     arrow: true,
-                    depth: node.depth || 0,
+                    depth: node.depth,
                 },
             ];
 
-            let prev: any;
-            let childLinkCount;
-          
-            if (!node.parent) {
-                nodes.push((prev = { tail: true }));
-                between = [prev, node];
-                nodeLinks[0].source = prev;
-                nodeLinks[0].target = node;
-                node.horizontal = true;
-                node.vertical = false;
-                node.depth = 0;
-                node.root = true;
-                node.totalLinks = [];
-            } else {
-                node.connector.maxChildIdx = 0;
-                node.connector.totalLinks = [];
-            }
-          
-            node.linkCount = 1;
-          
-            (node.children || []).forEach(function (child: any, idx: number) {
-                child.parent = node;
-                child.depth = (node.depth || 0) + 1;
-                child.childIdx = idx;
-                child.region = node.region ? node.region : idx & 1 ? 1 : -1;
-                child.horizontal = !node.horizontal;
-                child.vertical = !node.vertical;
-          
-                if (node.root && prev && !prev.tail) {
-                    nodes.push(
-                        (child.connector = {
-                            between: between,
-                            childIdx: prev.childIdx,
-                        })
-                    );
-                    prev = null;
-                } else {
-                    nodes.push(
-                        (prev = child.connector = { between: between, childIdx: cx++ })
-                    );
-                }
-          
+            let prev: ConnectorNode | null;
+            let childLinkCount: number | null;
+
+            let cx = 0;
+            const between: ConnectorNode['between'] = [node, node.connector];
+            let nodeLinkCount = 1;
+
+            node.children?.forEach((childFishboneNode, childIndex) => {
+                const childConnector: ConnectorNode = {
+                    between,
+                    childIdx: cx++,
+                    maxChildIdx: 0,
+                };
+
+                const childNode: TextNode = {
+                    parent: node,
+                    depth: node.depth + 1,
+                    childIdx: childIndex,
+                    region: node.region,
+                    vertical: !node.vertical,
+                    connector: childConnector,
+                    maxChildIdx: 0,
+                    name: childFishboneNode.name,
+                    children: childFishboneNode.children,
+                };
+
+                prev = childConnector;
+                nodes.push(prev);
+
                 nodeLinks.push({
-                    source: child,
-                    target: child.connector,
-                    depth: child.depth,
+                    source: childNode,
+                    target: childNode.connector,
+                    depth: childNode.depth,
                     arrow: false,
                 });
-          
-                childLinkCount = buildNodes(child);
-                node.linkCount += childLinkCount;
-                between[1].totalLinks.push(childLinkCount);
+
+                childLinkCount = initializeTextNode(childNode);
+                nodeLinkCount += childLinkCount;
             });
-          
+
             between[1].maxChildIdx = cx;
-          
-            Array.prototype.unshift.apply(links, nodeLinks);
-          
-            return node.linkCount;
+            links.unshift(...nodeLinks);
+
+            return nodeLinkCount;
         }
 
-        function tick() {
-            // TODO: Do we need it?
-            if (isDragging) return;
+        function initializeRootNode(node: FishboneNode) {
+            const root: RootNode = {
+                depth: 0,
+                maxChildIdx: 1,
+                name: node.name,
+                root: true,
+                vertical: false,
+                children: node.children,
+            };
 
-            const alpha = force?.alpha();
-      
-            const k = 6 * (alpha || 0);
-            const width = svgWidth();
-            const height = svgHeight();
+            const tail: TailNode = {
+                tail: true,
+            };
 
-            let a;
-            let b;
-          
-            nodes.forEach(function (d) {
-                if (d.root) {
-                    d.x = width - (margin + root.getBBox().width);
+            nodes.push(root);
+            nodes.push(tail);
+
+            const nodeLinks: Link[] = [
+                {
+                    source: tail,
+                    target: root,
+                    arrow: true,
+                    depth: root.depth,
                 }
-                if (d.tail) {
-                    d.x = margin;
-                    d.y = height / 2;
-                }
-          
-                if (d.depth === 1) {
-                    d.y = d.region === -1 ? margin : height - margin;
-                    d.x -= 10 * k;
-                }
-          
-                if (d.vertical) {
-                    d.y += k * d.region;
-                }
-          
-                if (d.depth) {
-                    d.x -= k;
-                }
-          
-                if (d.between) {
-                    a = d.between[0];
-                    b = d.between[1];
-          
-                    d.x = b.x - ((1 + d.childIdx) * (b.x - a.x)) / (b.maxChildIdx + 1);
-                    d.y = b.y - ((1 + d.childIdx) * (b.y - a.y)) / (b.maxChildIdx + 1);
-                }
-          
-                perNodeTick(d);
+            ];
+
+            let prev: TailNode | TextNode | null = tail;
+            const between: ConnectorNode['between'] = [prev, root];
+            let cx = 0;
+            let childLinkCount: number | null;
+            let nodeLinkCount = 1;
+
+            node.children?.forEach((childFishboneNode, childIndex) => {
+                const childConnector: ConnectorNode = (() => {
+                    if (prev && !isTailNode(prev)) {
+                        const connector = {
+                            between,
+                            childIdx: prev.childIdx,
+                            maxChildIdx: 0,
+                        };
+
+                        prev = null;
+
+                        return connector;
+                    } else  {
+                        return {
+                            between,
+                            childIdx: cx++,
+                            maxChildIdx: 0,
+                        };
+                    }
+                })();
+
+                const childNode: TextNode = {
+                    parent: root,
+                    depth: root.depth + 1,
+                    childIdx: childIndex,
+                    region: childIndex % 2 ? -1 : 1,
+                    vertical: !root.vertical,
+                    name: childFishboneNode.name,
+                    children: childFishboneNode.children,
+                    maxChildIdx: 0,
+                    connector: childConnector,
+                };
+
+                nodes.push(childConnector);
+
+                nodeLinks.push({
+                    source: childNode,
+                    target: childNode.connector,
+                    depth: childNode.depth,
+                    arrow: false,
+                });
+
+                childLinkCount = initializeTextNode(childNode);
+                nodeLinkCount += childLinkCount;
             });
-          
-            node
-                .attr('transform', (d: any) => `translate(${d.x},${d.y})`);
-          
-            link
-                .attr('x1', (d: any) => d.source.x)
-                .attr('y1', (d: any) => d.source.y)
-                .attr('x2', (d: any) => d.target.x)
-                .attr('y2', (d: any) => d.target.y);
+
+            between[1].maxChildIdx = cx;
+            links.unshift(...nodeLinks);
+
+            return nodeLinkCount;
         }
 
         defs
-            .selectAll(`marker${arrowElementId}`)
+            .selectAll(`marker#${arrowElementId}`)
             .data([1])
             .enter()
             .append('marker')
-            .attr('id', 'arrow')
+            .attr('id', arrowElementId)
             .attr('viewBox', '0 -5 10 10')
             .attr('refX', 10)
             .attr('refY', 0)
@@ -279,106 +418,128 @@ const Fishbone = (props: FishboneProps) => {
             .append('path')
             .attr('d', 'M0,-5L10,0L0,5');
 
-        buildNodes(svg.datum());
+        if (datum) {
+            initializeRootNode(datum);
+        }
 
-        force = d3.forceSimulation(nodes)
+        const linkForce = d3
+            .forceLink<Node, Link>()
+            .links(links)
+            .distance(getLinkDistance);
+
+        const simultation = d3.forceSimulation(nodes)
             .nodes(nodes)
-            .force('link', 
-                d3
-                    .forceLink()
-                    .id((d: any) => d.id)
-                    .links(links)
-                    .distance((d: any) => (
-                        (d.target.maxChildIdx + 1) * linkScale(d.depth + 1)
-                    ))
-            );
-
-        link = svg
-            .selectAll('.link')
+            .force('link', linkForce);
+            
+        const linkSelect = svg
+            .selectAll(`.${linkClassName}`)
             .data(links)
             .enter()
             .append('line')
-            .attr('class', (d: any) => `link link-${d.depth}`)
-            .attr('marker-end', (d: any) => d.arrow 
-                ? `url(${arrowElementId})` 
-                : null
-            )
-            .style('stroke', (d: Link) => {
-                return lineConfigWithoutOverflow(d.depth).color;
-            })
-            .style('stroke-width', (d: Link) => {
-                const width = lineConfigWithoutOverflow(d.depth).strokeWidthPx; 
-                return `${width}px`;
-            });
+            .attr('class', getLinkClass)
+            .attr('marker-end', getLinkSelectMarkerEnd)
+            .style('stroke', getLinkStroke)
+            .style('stroke-width', getLinkStrokeWidth);
 
-        node = svg
-            .selectAll('.node')
-            .data(nodes)
-            .enter()
-            .append('g')
-            .attr('class', (d: any) => `node ${d.root ? 'root' : ''}`)
-            .append('text')
-            .attr('class', (d: Node) => `label-${d.depth}`)
-            .style('font-size', (d: Node) => {
-                const size = nodeConfigWithoutOverflow(d.depth).fontSizeEm;
-                return `${size}em`;
-            })
-            .style('fill', (d: Node) => {
-                return nodeConfigWithoutOverflow(d.depth).color;
-            })
-            .attr('text-anchor', (d: Node) => !d.depth 
-                ? 'start' 
-                : d.horizontal 
-                    ? 'end' 
-                    : 'middle'
-            )
-            .attr('dy', (d: any) => d.horizontal 
-                ? '.35em' 
-                : d.region === 1 
-                    ? '1em' 
-                    : '-.2em'
-            )
-            .text((d: Node) => d.name)
-            .classed('node', true)
-            .classed('fixed', (d: any) => d.fx !== undefined);
-
-        function clamp(x: any, lo: any, hi: any) {
-            return x < lo ? lo : x > hi ? hi : x;
-        }
-                
-        function click(event: any, d: any) {
+        function click(event: any, d: Node) {
             delete d.fx;
             delete d.fy;
             d3.select(event.target).classed('fixed', false);
-            force?.alpha(1).restart();
+            simultation.alpha(1).restart();
         }
-                
+                    
         const dragstart = (event: any) => {
             setIsDragging(true);
             d3.select(event.sourceEvent.target).classed('fixed', true);
         };
-                
-        function dragged(event: any, d: any) {
+                    
+        function dragged(event: MouseEvent, d: Node) {
             d.fx = clamp(event.x, 0, svgWidth());
             d.fy = clamp(event.y, 0, svgHeight());
-            force?.alpha(1).restart();
+            simultation.alpha(1).restart();
         }
-
+    
         const dragend = () => {
             setIsDragging(false);
         };
+
+        const nodesSelect = 
+            svg
+                .selectAll(`.${nodeClassName}`)
+                .data(nodes)
+                .enter()
+                .append('g')
+                .attr('class', getNodeClass)
+                .append('text')
+                .attr('class', getNodeLabelClass)
+                .style('font-size', getNodeFontSize)
+                .style('fill', getNodeFill)
+                .attr('text-anchor', getNodeTextAnchor)
+                .attr('dy', getNodeDy)
+                .text(getNodeText)
+                .classed('node', true)
+                .classed('fixed', getIsNodeFixed);
           
-        const drag = d3
-            .drag()
-            .on('start', dragstart)
-            .on('drag', dragged)
-            .on('end', dragend);
+        nodesSelect
+            .call(
+                d3
+                    .drag<SVGTextElement, Node>()
+                    .on('start', dragstart)
+                    .on('drag', dragged)
+                    .on('end', dragend)
+            ).on('click', click);
+
+        const root = svg.select('.root').node() as SVGGraphicsElement;
           
-        node.call(drag).on('click', click);
+        function tick() {
+            if (isDragging) return;
+
+            const alpha = simultation.alpha();
+      
+            const k = angleCoefficient * alpha;
+            const width = svgWidth();
+            const height = svgHeight();
+
+            nodes.forEach((node) => {
+                if (isTailNode(node)) {
+                    node.x = margin;
+                    node.y = height / 2;
+                }
+                else if (isConnectorNode(node)) {
+                    const source = node.between[0];
+                    const target = node.between[1];
           
-        root = svg.select('.root').node();
+                    node.x = target.x! - ((1 + node.childIdx!) * (target.x! - source.x!)) / (target.maxChildIdx! + 1);
+                    node.y = target.y! - ((1 + node.childIdx!) * (target.y! - source.y!)) / (target.maxChildIdx! + 1);
+                } else if (isRootNode(node)) {
+                    node.x = width - (margin + root.getBBox().width);
+                } else {
+                    if (node.depth === 1) {
+                        node.y = node.region === -1 ? margin : height - margin;
+                        node.x! -= 10 * k;
+                    }
+            
+                    if (node.vertical) {
+                        node.y! += k * node.region!;
+                    }
+            
+                    if (node.depth) {
+                        node.x! -= k;
+                    }
+                }     
+            });
           
-        force.on('tick', tick);
+            nodesSelect
+                .attr('transform', (node) => `translate(${node.x!},${node.y!})`);
+          
+            linkSelect
+                .attr('x1', (link) => link.source.x!)
+                .attr('y1', (link) => link.source.y!)
+                .attr('x2', (link) => link.target.x!)
+                .attr('y2', (link) => link.target.y!);
+        }
+
+        simultation.on('tick', tick);
           
         d3.select(window).on('resize', function () {
             svg
@@ -386,7 +547,7 @@ const Fishbone = (props: FishboneProps) => {
                 .attr('height', svgHeight());
               
             const resizeFinished = setTimeout(() => {
-                force?.restart();
+                simultation.restart();
             }, 200);
               
             clearTimeout(resizeFinished);
@@ -395,15 +556,15 @@ const Fishbone = (props: FishboneProps) => {
 
     React.useEffect(() => {
         // Ref is not initialized
-        if (ref.current === null) return;
+        if (containerRef.current === null) return;
         // Ref was already initialized (Caused by React.StrictMode)
-        if (ref.current.children.length !== 0) return;
+        if (containerRef.current.children.length !== 0) return;
         // If no items passed - render nothing
         if (!items) return;
 
         initialize();
     }, [
-        ref,
+        containerRef,
         width,
         height, 
         items,
@@ -413,7 +574,7 @@ const Fishbone = (props: FishboneProps) => {
     ]);
 
     return (
-        <div ref={ref} style={wrapperStyle}>
+        <div ref={containerRef} style={wrapperStyle}>
         </div>
     );
 };
