@@ -1,27 +1,11 @@
 {
-  "name": "@hophiphip/react-fishbone",
-  "private": false,
-  "version": "0.4.1",
+  "name": "root",
+  "private": true,
   "type": "module",
-  "description": "React fishbone (Ishikawa) diagram component",
-  "homepage": "https://github.com/hophiphip/react-fishbone",
-  "module": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "scripts": {
-    "lint": "eslint . --ext .js,.jsx,.ts,.tsx --config ./.eslintrc.json",
-    "clean": "rimraf dist",
-    "build": "npm run clean && ts-node-esm scripts/build.ts && tsc --emitDeclarationOnly --outDir dist",
-    "preview": "npm run build && vite serve ./public",
-    "storybook": "start-storybook -p 6006",
-    "build-storybook": "build-storybook --output-dir build"
-  },
-  "files": [
-    "dist"
-  ],
-  "keywords": [
-    "React",
-    "fishbone"
-  ],
+  "license": "MIT",
+  "author": "hophiphip",
+  "packageManager": "pnpm@8.2.0",
+  "description": "Fishbone (Ishikawa) diagram layout",
   "repository": {
     "type": "git",
     "url": "https://github.com/hophiphip/react-fishbone"
@@ -29,39 +13,18 @@
   "bugs": {
     "url": "https://github.com/hophiphip/react-fishbone/issues"
   },
-  "author": "hophiphip",
-  "license": "ISC",
-  "devDependencies": {
-    "@babel/core": "^7.20.2",
-    "@storybook/addon-actions": "^6.5.13",
-    "@storybook/addon-essentials": "^6.5.13",
-    "@storybook/addon-interactions": "^6.5.13",
-    "@storybook/addon-links": "^6.5.13",
-    "@storybook/builder-vite": "^0.2.5",
-    "@storybook/react": "^6.5.13",
-    "@storybook/testing-library": "^0.0.13",
-    "@types/d3": "^7.4.0",
-    "@types/node": "^18.11.9",
-    "@types/react": "^18.0.25",
-    "@types/react-dom": "^18.0.8",
-    "@typescript-eslint/eslint-plugin": "^5.42.1",
-    "@typescript-eslint/parser": "^5.42.1",
-    "@vitejs/plugin-react": "^2.2.0",
-    "babel-loader": "^8.3.0",
-    "chokidar": "^3.5.3",
-    "esbuild": "^0.15.13",
-    "esbuild-css-modules-plugin": "^2.6.2",
-    "eslint": "^8.27.0",
-    "eslint-plugin-react": "^7.31.10",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "react-live": "^3.1.1",
-    "rimraf": "^3.0.2",
-    "ts-node": "^10.9.1",
-    "typescript": "^4.8.4",
-    "vite": "^3.2.2"
+  "homepage": "https://github.com/hophiphip/react-fishbone",
+  "keywords": [
+    "React",
+    "fishbone"
+  ],
+  "scripts": {
+    "preinstall": "npx only-allow pnpm",
+    "format": "pnpm biome format packages/* --write",
+    "fishbone-layout": "pnpm --filter fishbone-layout",
+    "react-fishbone": "pnpm --filter react-fishbone"
   },
-  "dependencies": {
-    "d3": "^7.6.1"
+  "devDependencies": {
+    "@biomejs/biome": "1.9.3"
   }
 }

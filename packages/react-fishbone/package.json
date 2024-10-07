@@ -1,0 +1,42 @@
+{
+	"name": "@hophiphip/react-fishbone",
+	"private": false,
+	"version": "0.5.0",
+	"type": "module",
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"import": {
+				"types": "./dist/index.d.ts",
+				"default": "./dist/index.js"
+			}
+		},
+		"./package.json": "./package.json"
+	},
+	"scripts": {
+		"preinstall": "npx only-allow pnpm",
+		"build": "tsc -b && vite build",
+		"dev": "vite --config ./vite.dev.config.ts"
+	},
+	"devDependencies": {
+		"@types/react": "^18.3.3",
+		"@types/react-dom": "^18.3.0",
+		"@vitejs/plugin-react": "^4.3.1",
+		"glob": "^11.0.0",
+		"globals": "^15.9.0",
+		"react": "^18.3.1",
+		"react-dom": "^18.3.1",
+		"typescript": "^5.5.3",
+		"vite": "^5.4.1",
+		"vite-plugin-dts": "^4.2.3"
+	},
+	"peerDependencies": {
+		"react": "^16.8.0 || ^17.0.0 || ^18.0.0",
+		"react-dom": "^16.8.0 || ^17.0.0 || ^18.0.0"
+	},
+	"dependencies": {
+		"@xyflow/react": "^12.3.1"
+	},
+	"files": ["dist", "src"]
+}

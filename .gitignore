@@ -1,7 +1,8 @@
-.cache
+.DS_STORE
 .idea
-build/
-dist/
-storybook-static/
-node_modules/
-.vercel
+.vscode/*
+!.vscode/launch.json
+!.vscode/settings.json
+!.vscode/extensions.json
+dist
+node_modules
