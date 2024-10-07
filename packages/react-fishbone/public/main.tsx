@@ -8,7 +8,7 @@ import Fishbone from "../src";
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
 	<React.StrictMode>
 		<Fishbone
-			fishboneRootNode={{
+			items={{
 				label: "Root",
 				children: [
 					{

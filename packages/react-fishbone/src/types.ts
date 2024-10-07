@@ -1,4 +1,4 @@
-import type { Edge as XyFlowEdge, Node as XyFlowNode } from "@xyflow/react";
+import type { ReactFlowProps, Edge as XyFlowEdge, Node as XyFlowNode } from "@xyflow/react";
 import type { ReactNode } from "react";
 
 export type FishboneNode = {
@@ -27,3 +27,15 @@ export type ConnectorNodeData = {
 export type Node = XyFlowNode<NodeData>;
 export type Connector = XyFlowNode<ConnectorNodeData>;
 export type Edge = XyFlowEdge<Node>;
+
+export type FishboneProps = {
+	items: FishboneNode;
+	reactFlowProps?: Omit<
+		ReactFlowProps<Node | Connector, Edge>,
+		'fitView' 
+		| 'nodes' 
+		| 'edges' 
+		| 'onNodesChange'
+		| 'onEdgesChange'
+	>;
+};

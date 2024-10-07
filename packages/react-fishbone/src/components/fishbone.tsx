@@ -11,7 +11,7 @@ import {
 
 import { memo, useCallback, useEffect } from "react";
 import { getIsHorizontal, nodesAngle, rootId, tailId, xGap, yGap } from "../const";
-import type { Connector, Edge, FishboneNode, MinMax, Node } from "../types";
+import type { Connector, Edge, FishboneNode, FishboneProps, MinMax, Node } from "../types";
 import { FishboneEdgeTypes, fishboneEdgeTypes } from "./edges";
 import ReloadIcon from "./icons/reload";
 import { FishboneNodeTypes, fishboneNodeTypes } from "./nodes";
@@ -420,14 +420,14 @@ function getFishboneLayout(fishboneRoot: FishboneNode): [(Node | Connector)[], E
 
 /** ----------------------------------------------------------------------------- */
 
-function FishboneFlowBase({ fishboneRootNode }: { fishboneRootNode: FishboneNode }) {
+function FishboneFlowBase({ items, reactFlowProps }: FishboneProps) {
 	const { fitView } = useReactFlow();
 	
 	const [nodes, setNodes, onNodesChange] = useNodesState<Node | Connector>([]);
 	const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
 
 	const onLayout = useCallback(() => {
-		const [nodes, edges] = getFishboneLayout(fishboneRootNode);
+		const [nodes, edges] = getFishboneLayout(items);
 
 		setNodes(nodes);
 		setEdges(edges);
@@ -435,12 +435,12 @@ function FishboneFlowBase({ fishboneRootNode }: { fishboneRootNode: FishboneNode
 		window.requestAnimationFrame(() => {
 			fitView();
 		});
-	}, [setNodes, setEdges, fitView, fishboneRootNode]);
+	}, [setNodes, setEdges, fitView, items]);
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: update nodes and edges only on `fishboneRootNode` change 
 	useEffect(() => {
 		onLayout();
-	}, [fishboneRootNode]);
+	}, [items]);
 
 	return (
 		<ReactFlow
@@ -451,6 +451,7 @@ function FishboneFlowBase({ fishboneRootNode }: { fishboneRootNode: FishboneNode
 			nodeTypes={fishboneNodeTypes}
 			onNodesChange={onNodesChange}
 			onEdgesChange={onEdgesChange}
+			{...reactFlowProps}
 		>
 			<Background />
 
@@ -465,10 +466,13 @@ function FishboneFlowBase({ fishboneRootNode }: { fishboneRootNode: FishboneNode
 
 const FishboneFlow = memo(FishboneFlowBase);
 
-const Fishbone = ({ fishboneRootNode }: { fishboneRootNode: FishboneNode }) => {
+const Fishbone = ({ items, reactFlowProps }: FishboneProps) => {
 	return (
 		<ReactFlowProvider>
-			<FishboneFlow fishboneRootNode={fishboneRootNode} />
+			<FishboneFlow  
+				items={items}
+				reactFlowProps={reactFlowProps}
+			/>
 		</ReactFlowProvider>
 	);
 };
