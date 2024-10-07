@@ -12,7 +12,7 @@ npm install @hophiphip/react-fishbone
 
 ```tsx
 import Fishbone from '@hophiphip/react-fishbone';
-import '@hophiphip/react-fishbone/assets/style.css'
+import '@hophiphip/react-fishbone/style.css';
 
 export default () => {
     return (

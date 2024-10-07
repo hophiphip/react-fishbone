@@ -12,7 +12,8 @@
 				"default": "./dist/index.js"
 			}
 		},
-		"./package.json": "./package.json"
+		"./package.json": "./package.json",
+		"./style.css": "./dist/assets/style.css"
 	},
 	"scripts": {
 		"prepare": "pnpm run build",
