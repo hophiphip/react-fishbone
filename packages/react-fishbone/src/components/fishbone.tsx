@@ -422,7 +422,7 @@ function getFishboneLayout(fishboneRoot: FishboneNode): [(Node | Connector)[], E
 
 function FishboneFlowBase({ items, reactFlowProps }: FishboneProps) {
 	const { fitView } = useReactFlow();
-	
+
 	const [nodes, setNodes, onNodesChange] = useNodesState<Node | Connector>([]);
 	const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
 
@@ -437,7 +437,7 @@ function FishboneFlowBase({ items, reactFlowProps }: FishboneProps) {
 		});
 	}, [setNodes, setEdges, fitView, items]);
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: update nodes and edges only on `fishboneRootNode` change 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: update nodes and edges only on `items` change
 	useEffect(() => {
 		onLayout();
 	}, [items]);
@@ -469,10 +469,7 @@ const FishboneFlow = memo(FishboneFlowBase);
 const Fishbone = ({ items, reactFlowProps }: FishboneProps) => {
 	return (
 		<ReactFlowProvider>
-			<FishboneFlow  
-				items={items}
-				reactFlowProps={reactFlowProps}
-			/>
+			<FishboneFlow items={items} reactFlowProps={reactFlowProps} />
 		</ReactFlowProvider>
 	);
 };

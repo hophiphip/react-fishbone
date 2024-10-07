@@ -9,13 +9,7 @@ import {
 	useStore,
 } from "@xyflow/react";
 
-import { 
-	type CSSProperties, 
-	memo, 
-	useCallback, 
-	useEffect, 
-	useRef 
-} from "react";
+import { type CSSProperties, memo, useCallback, useEffect, useRef } from "react";
 
 import {
 	connectorSize,
@@ -90,7 +84,8 @@ const ConnectorDebugInfo = ({
 				display: "block",
 			}}
 		>
-			({connectorCenterX}, {connectorCenterY}) / ({internalNode?.internals.positionAbsolute.x}, {internalNode?.internals.positionAbsolute.y})
+			({connectorCenterX}, {connectorCenterY}) / ({internalNode?.internals.positionAbsolute.x}
+			, {internalNode?.internals.positionAbsolute.y})
 		</span>
 	);
 };
@@ -255,13 +250,7 @@ function ConnectorNodeBase({
 				);
 			});
 		}
-	}, [
-		id, 
-		areNodesInitialized,
-		connectorCenterX, 
-		connectorCenterY, 
-		setNodes
-	]);
+	}, [id, areNodesInitialized, connectorCenterX, connectorCenterY, setNodes]);
 
 	return (
 		<div style={connectorContainerStyle}>

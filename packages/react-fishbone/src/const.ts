@@ -1,5 +1,5 @@
-export const rootId = 'root';
-export const tailId = 'tail';
+export const rootId = "root";
+export const tailId = "tail";
 
 export const nodeWidth = 150;
 export const nodeHeight = 50;

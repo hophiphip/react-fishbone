@@ -9,13 +9,13 @@ import type { NodeData } from "../../types";
 const rootArrowStyle: CSSProperties = {
 	width: 0,
 	height: 0,
-	borderTop: '5px solid transparent',
-	borderBottom: '5px solid transparent',
-	borderRight: '5px solid transparent',
-	boxSizing: 'border-box',
-	background: 'transparent',
-	borderLeft: '20px solid black',
-	paddingRight: '0.5rem',
+	borderTop: "5px solid transparent",
+	borderBottom: "5px solid transparent",
+	borderRight: "5px solid transparent",
+	boxSizing: "border-box",
+	background: "transparent",
+	borderLeft: "20px solid black",
+	paddingRight: "0.5rem",
 	borderRadius: 0,
 };
 
@@ -30,43 +30,25 @@ function NodeHandleBase({
 }) {
 	switch (id) {
 		case tailId:
-			return (
-				<Handle 
-					type="source" 
-					position={Position.Right} 
-					isConnectable={isConnectable} 
-				/>
-			);
+			return <Handle type="source" position={Position.Right} isConnectable={isConnectable} />;
 
 		case rootId:
 			return (
-				<Handle 
-					type="target" 
+				<Handle
+					type="target"
 					style={rootArrowStyle}
-					position={Position.Left} 
+					position={Position.Left}
 					isConnectable={isConnectable}
 				/>
 			);
 
 		default:
 			return getIsHorizontal(data.depth) ? (
-				<Handle 
-					type="source" 
-					position={Position.Right} 
-					isConnectable={isConnectable} 
-				/>
+				<Handle type="source" position={Position.Right} isConnectable={isConnectable} />
 			) : data.isTop ? (
-				<Handle 
-					type="source" 
-					position={Position.Bottom} 
-					isConnectable={isConnectable} 
-				/>
+				<Handle type="source" position={Position.Bottom} isConnectable={isConnectable} />
 			) : (
-				<Handle 
-					type="source" 
-					position={Position.Top} 
-					isConnectable={isConnectable} 
-				/>
+				<Handle type="source" position={Position.Top} isConnectable={isConnectable} />
 			);
 	}
 }
@@ -101,28 +83,35 @@ function FishboneNodeDebugInfo({
 function getNodeLabelStyles(data: NodeData): CSSProperties {
 	const { depth } = data;
 
-	const depthToFontSize = (depth: number): CSSProperties['fontSize'] => {
+	const depthToFontSize = (depth: number): CSSProperties["fontSize"] => {
 		switch (depth) {
-			case 0: return 24;
-			case 1: return 16;
-			case 2: return 14;
-			case 3: return 12;
-			default: return 10;
+			case 0:
+				return 24;
+			case 1:
+				return 16;
+			case 2:
+				return 14;
+			case 3:
+				return 12;
+			default:
+				return 10;
 		}
-	}
+	};
 
-	const depthToFontWeight = (depth: number): CSSProperties['fontWeight'] => {
+	const depthToFontWeight = (depth: number): CSSProperties["fontWeight"] => {
 		switch (depth) {
-			case 0: return 'bold';
-			default: return undefined;
+			case 0:
+				return "bold";
+			default:
+				return undefined;
 		}
-	}
+	};
 
 	return {
-		display: 'block',
-		overflow: 'hidden',
-		whiteSpace: 'nowrap',
-		textOverflow: 'ellipsis',
+		display: "block",
+		overflow: "hidden",
+		whiteSpace: "nowrap",
+		textOverflow: "ellipsis",
 		fontSize: depthToFontSize(depth),
 		fontWeight: depthToFontWeight(depth),
 	};
@@ -149,11 +138,11 @@ function FishboneNodeBase({
 			width: nodeWidth,
 			height: nodeHeight,
 			display: "flex",
-			justifyContent: isHorizontal ? "center" : isTop ? "end": "start",
+			justifyContent: isHorizontal ? "center" : isTop ? "end" : "start",
 			alignItems: isRoot ? "start" : isHorizontal ? "end" : "center",
 			paddingBottom: isTop === true ? "0.2rem" : undefined,
 			paddingTop: isTop === false ? "0.2rem" : undefined,
-			paddingInline: '0.5rem',
+			paddingInline: "0.5rem",
 			flexDirection: "column",
 			overflow: "hidden",
 			boxSizing: "border-box",
@@ -162,13 +151,9 @@ function FishboneNodeBase({
 
 	return (
 		<div style={nodeStyle}>
-			<span style={useMemo(() => getNodeLabelStyles(data), [data])}>
-				{label}
-			</span>
+			<span style={useMemo(() => getNodeLabelStyles(data), [data])}>{label}</span>
 
-			{isFishoneDebug && (
-				<FishboneNodeDebugInfo id={id} data={data} />
-			)}
+			{isFishoneDebug && <FishboneNodeDebugInfo id={id} data={data} />}
 
 			<NodeHandle id={id} data={data} isConnectable={isConnectable} />
 		</div>

@@ -32,10 +32,6 @@ export type FishboneProps = {
 	items: FishboneNode;
 	reactFlowProps?: Omit<
 		ReactFlowProps<Node | Connector, Edge>,
-		'fitView' 
-		| 'nodes' 
-		| 'edges' 
-		| 'onNodesChange'
-		| 'onEdgesChange'
+		"fitView" | "nodes" | "edges" | "onNodesChange" | "onEdgesChange"
 	>;
 };
