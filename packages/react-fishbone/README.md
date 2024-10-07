@@ -95,4 +95,4 @@ Fishbone tree node element
 | Property       | Type           | Description             |
 |:--------------:|:--------------:|:-----------------------:|
 | items          | [FishboneNode](#fishbonenode)   | Fishbone tree root node |
-| reactFlowProps | ReactFlowProps | React flow props        |
+| reactFlowProps | [ReactFlowProps](https://reactflow.dev/api-reference/react-flow#common-props) | React flow props        |
