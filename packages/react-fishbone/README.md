@@ -97,3 +97,7 @@ Fishbone tree node element
 |:--------------:|:--------------:|:-----------------------:|
 | items          | [FishboneNode](#fishbonenode)   | Fishbone tree root node |
 | reactFlowProps | [ReactFlowProps](https://reactflow.dev/api-reference/react-flow#common-props) | React flow props        |
+
+### Dependencies
+
+React fishbone component is based on [xyflow](https://github.com/xyflow/xyflow/tree/main).
