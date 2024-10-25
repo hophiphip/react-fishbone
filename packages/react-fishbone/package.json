@@ -40,8 +40,5 @@
 	"dependencies": {
 		"@xyflow/react": "^12.3.1"
 	},
-	"files": [
-		"dist",
-		"src"
-	]
+	"files": ["dist", "src"]
 }

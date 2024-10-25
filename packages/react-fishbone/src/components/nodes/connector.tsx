@@ -3,7 +3,6 @@ import {
 	Position,
 	type ReactFlowStore,
 	applyNodeChanges,
-	useInternalNode,
 	useNodesInitialized,
 	useReactFlow,
 	useStore,
@@ -166,121 +165,118 @@ function ConnectorNodeBase({
 				}
 
 				const fromSourceToNode = isHorizontal
-					/**
-					 * There are two cases, when edge is on
-					 * 
-					 * 1. Top:                Y
-					 *                        |
-					 *            A,B _____   |_______ B
-					 *               |     |  |   
-					 *                -----   |------- B + h -------|
-					 *                  |     |                     |
-					 *                  |     |                     |---- B + h - (b + h / 2)
-					 *  a,b _____       |     |_______ b            |
-					 *     |     |------|     |------- b + h/2 -----|
-					 *      -----             |
-					 *                        |
-					 *                        v
-					 *                        0
-					 * 
-					 * 2. Bottom:              0
-					 *                         ^
-					 *   a,b _____       |     |_______ b
-					 *      |     |------|     |------- b + h / 2 ---|
-					 *       -----       |     |                     |
-					 *                   |     |                     |---- B - (b + h / 2) 
-					 *                   |     |                     |
-					 *              A,B_____   |_______ B -----------|
-					 *                |     |  |
-					 *                 -----   |
-					 *                         |
-					 *                         Y
-					 *                         
-					 */
-					? Math.abs(
-						edgeSourceNode.position.y 
-						- initialFromNodeOffset.current 
-						- (nodeHeight / 2)
-						+ (isTop ? nodeHeight : 0),
-					)
+					? /**
+						 * There are two cases, when edge is on
+						 *
+						 * 1. Top:                Y
+						 *                        |
+						 *            A,B _____   |_______ B
+						 *               |     |  |
+						 *                -----   |------- B + h -------|
+						 *                  |     |                     |
+						 *                  |     |                     |---- B + h - (b + h / 2)
+						 *  a,b _____       |     |_______ b            |
+						 *     |     |------|     |------- b + h/2 -----|
+						 *      -----             |
+						 *                        |
+						 *                        v
+						 *                        0
+						 *
+						 * 2. Bottom:              0
+						 *                         ^
+						 *   a,b _____       |     |_______ b
+						 *      |     |------|     |------- b + h / 2 ---|
+						 *       -----       |     |                     |
+						 *                   |     |                     |---- B - (b + h / 2)
+						 *                   |     |                     |
+						 *              A,B_____   |_______ B -----------|
+						 *                |     |  |
+						 *                 -----   |
+						 *                         |
+						 *                         Y
+						 *
+						 */
+						Math.abs(
+							edgeSourceNode.position.y -
+								initialFromNodeOffset.current -
+								nodeHeight / 2 +
+								(isTop ? nodeHeight : 0),
+						)
 					: Math.abs(
-						edgeSourceNode.position.x 
-						+ nodeWidth 
-						- initialFromNodeOffset.current 
-						- nodeWidth / 2 
-						- nodesAngle,
-					);
+							edgeSourceNode.position.x +
+								nodeWidth -
+								initialFromNodeOffset.current -
+								nodeWidth / 2 -
+								nodesAngle,
+						);
 
 				const fromSourceToTarget = isHorizontal
-					/**
-					 * There are two cases, when edge is on
-					 * 
-					 * 1. Top:                Y
-					 *                        |
-					 *            A,B _____   |_______ B
-					 *               |     |  |   
-					 *                -----   |------- B + h -------|
-					 *                  |     |                     |
-					 *                  |     |                     |---- B + h - b
-					 *                  |     |                     |
-					 *              a,b *     |------- b -----------|
-					 *                 ***    |
-					 *                  *     |
-					 *                        |
-					 *                        v
-					 *                        0
-					 * 
-					 * 2. Bottom:              0
-					 *                         ^
-					 *               a,b *     |------- b
-					 *                  ***    |
-					 *                   *     |------- b + 2 * r ---|
-					 *                   |     |                     |
-					 *                   |     |                     |
-					 *                   |     |                     |
-					 *                   |     |                     |---- B - (b + 2 * r) 
-					 *                   |     |                     |
-					 *              A,B_____   |_______ B ___________|
-					 *                |     |  |
-					 *                 -----   |
-					 *                         |
-					 *                         Y
-					 *                         
-					 */
-					? Math.abs(
-						edgeSourceNode.position.y 
-						- edgeTargetNode.position.y 
-						+ (isTop ? nodeHeight : 0)
-						- (isTop ? 0 : 2) * connectorSize
-					)
-					: Math.abs(
-						edgeSourceNode.position.x 
-						+ nodeWidth 
-						- edgeTargetNode.position.x
-					);
-
-				const [centerX, centerY] = getPartitionPoint(isHorizontal
-					? {
-							sourceX: edgeSourceNode.position.x + nodeWidth / 2,
-							/** When node on top - its handle position is in the bottom. 
-							 * We need to adjust Y coordinates.
-							 */
-							sourceY: edgeSourceNode.position.y + (isTop ? nodeHeight : 0),
-							targetX: edgeTargetNode.position.x + connectorSize / 2,
-							targetY: edgeTargetNode.position.y + connectorSize,
-
-							part: (fromSourceToTarget - fromSourceToNode) / fromSourceToTarget,
-						}
-					: {
-							sourceX: edgeSourceNode.position.x + nodeWidth,
-							sourceY: edgeSourceNode.position.y + nodeHeight / 2,
-							targetX: edgeTargetNode.position.x,
-							targetY:
+					? /**
+						 * There are two cases, when edge is on
+						 *
+						 * 1. Top:                Y
+						 *                        |
+						 *            A,B _____   |_______ B
+						 *               |     |  |
+						 *                -----   |------- B + h -------|
+						 *                  |     |                     |
+						 *                  |     |                     |---- B + h - b
+						 *                  |     |                     |
+						 *              a,b *     |------- b -----------|
+						 *                 ***    |
+						 *                  *     |
+						 *                        |
+						 *                        v
+						 *                        0
+						 *
+						 * 2. Bottom:              0
+						 *                         ^
+						 *               a,b *     |------- b
+						 *                  ***    |
+						 *                   *     |------- b + 2 * r ---|
+						 *                   |     |                     |
+						 *                   |     |                     |
+						 *                   |     |                     |
+						 *                   |     |                     |---- B - (b + 2 * r)
+						 *                   |     |                     |
+						 *              A,B_____   |_______ B ___________|
+						 *                |     |  |
+						 *                 -----   |
+						 *                         |
+						 *                         Y
+						 *
+						 */
+						Math.abs(
+							edgeSourceNode.position.y -
 								edgeTargetNode.position.y +
-								(isRoot ? nodeHeight / 2 : connectorSize / 2),
-								
-							part: (fromSourceToTarget - fromSourceToNode) / fromSourceToTarget,
-						}
+								(isTop ? nodeHeight : 0) -
+								(isTop ? 0 : 2) * connectorSize,
+						)
+					: Math.abs(edgeSourceNode.position.x + nodeWidth - edgeTargetNode.position.x);
+
+				const [centerX, centerY] = getPartitionPoint(
+					isHorizontal
+						? {
+								sourceX: edgeSourceNode.position.x + nodeWidth / 2,
+								/** When node on top - its handle position is in the bottom.
+								 * We need to adjust Y coordinates.
+								 */
+								sourceY: edgeSourceNode.position.y + (isTop ? nodeHeight : 0),
+								targetX: edgeTargetNode.position.x + connectorSize / 2,
+								targetY: edgeTargetNode.position.y + connectorSize,
+
+								part: (fromSourceToTarget - fromSourceToNode) / fromSourceToTarget,
+							}
+						: {
+								sourceX: edgeSourceNode.position.x + nodeWidth,
+								sourceY: edgeSourceNode.position.y + nodeHeight / 2,
+								targetX: edgeTargetNode.position.x,
+								targetY:
+									edgeTargetNode.position.y +
+									(isRoot ? nodeHeight / 2 : connectorSize / 2),
+
+								part: (fromSourceToTarget - fromSourceToNode) / fromSourceToTarget,
+							},
 				);
 
 				return [
