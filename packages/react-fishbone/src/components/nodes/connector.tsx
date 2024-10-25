@@ -64,15 +64,12 @@ const ConnectorDebugInfo = ({
 	connectorCenterX,
 	connectorCenterY,
 	isHorizontal,
-	id,
 }: {
 	connectorCenterY: number;
 	connectorCenterX: number;
 	isHorizontal: boolean | undefined;
 	id: string;
 }) => {
-	const internalNode = useInternalNode(id);
-
 	return (
 		<span
 			style={{
@@ -84,8 +81,7 @@ const ConnectorDebugInfo = ({
 				display: "block",
 			}}
 		>
-			({connectorCenterX}, {connectorCenterY}) / ({internalNode?.internals.positionAbsolute.x}
-			, {internalNode?.internals.positionAbsolute.y})
+			({connectorCenterX}, {connectorCenterY}, {`${isHorizontal}`})
 		</span>
 	);
 };
@@ -258,7 +254,7 @@ function ConnectorNodeBase({
 				<ConnectorDebugInfo
 					connectorCenterX={connectorCenterX}
 					connectorCenterY={connectorCenterY}
-					isHorizontal={isFishboneDebug}
+					isHorizontal={isHorizontal}
 					id={id}
 				/>
 			)}
