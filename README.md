@@ -1,7 +1,16 @@
+```
+         I         H         O            |\
+ *        \         \         \           | \
+ |\        \         \         \          |E \
+ | >--------------------------------------|  <
+ |/   /         /         /         /     |  /
+ *	 /         /         /         /      | /
+	F         S         B         N       |/
+```
+
 # Fishbone
 
 Fishbone ([Ishikawa](https://en.wikipedia.org/wiki/Ishikawa_diagram)) chart component.
-
 
 ## Fishbone chart monorepo
 
