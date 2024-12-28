@@ -23,7 +23,7 @@ import "@xyflow/react/dist/style.css";
 
 /** ----------------------------------------------------------------------------- */
 
-function FishboneFlowBase({ items, reactFlowProps, layout = alteratingFishboneLayout }: FishboneProps) {
+function FishboneFlowBase({ items, reactFlowProps, layout = alteratingFishboneLayout  }: FishboneProps) {
 	const { fitView } = useReactFlow();
 
 	const [nodes, setNodes, onNodesChange] = useNodesState<Node | Connector>([]);
@@ -40,10 +40,13 @@ function FishboneFlowBase({ items, reactFlowProps, layout = alteratingFishboneLa
 		});
 	}, [layout, setNodes, setEdges, fitView, items]);
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: update nodes and edges only on `items` change
+	/**
+	 * biome-ignore lint/correctness/useExhaustiveDependencies: update nodes and edges only on `items` change,
+	 * or rebuild layout completely when layout function was changed.
+	 */
 	useEffect(() => {
 		onLayout();
-	}, [items]);
+	}, [items, layout]);
 
 	return (
 		<ReactFlow
@@ -69,10 +72,10 @@ function FishboneFlowBase({ items, reactFlowProps, layout = alteratingFishboneLa
 
 const FishboneFlow = memo(FishboneFlowBase);
 
-const Fishbone = ({ items, reactFlowProps }: FishboneProps) => {
+const Fishbone = (props: FishboneProps) => {
 	return (
 		<ReactFlowProvider>
-			<FishboneFlow items={items} reactFlowProps={reactFlowProps} />
+			<FishboneFlow {...props} />
 		</ReactFlowProvider>
 	);
 };
