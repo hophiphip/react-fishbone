@@ -291,11 +291,17 @@ function getFishboneLayout(fishboneRoot: FishboneNode): [(Node | Connector)[], E
         const currentY = minMax.maxY;
         const childrenDepth = depth + 1;
 
+        let prevMinMax = { ...minMax };
+
         for (let childIndex = 0; childIndex < children.length; childIndex++) {
+            if (childIndex % 2 === 0) {
+                prevMinMax = { ...minMax };
+            }
+
             childrenNodes.push(
                 verticalNodeHandler(
                     children[childIndex],
-                    minMax,
+                    childIndex % 2 === 0 ? minMax : prevMinMax,
                     nodes,
                     edges,
                     childrenDepth,
