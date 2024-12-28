@@ -1,5 +1,6 @@
 import type { ReactFlowProps, Edge as XyFlowEdge, Node as XyFlowNode } from "@xyflow/react";
 import type { ReactNode } from "react";
+import type { alteratingFishboneLayout } from "./layout";
 
 export type FishboneNode = {
 	label?: ReactNode;
@@ -28,10 +29,13 @@ export type Node = XyFlowNode<NodeData>;
 export type Connector = XyFlowNode<ConnectorNodeData>;
 export type Edge = XyFlowEdge<Node>;
 
+type LayoutFunction = typeof alteratingFishboneLayout;
+
 export type FishboneProps = {
 	items: FishboneNode;
+	layout?: LayoutFunction;
 	reactFlowProps?: Omit<
 		ReactFlowProps<Node | Connector, Edge>,
 		"fitView" | "nodes" | "edges" | "onNodesChange" | "onEdgesChange"
-	>;
+>
 };
