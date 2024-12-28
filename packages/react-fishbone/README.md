@@ -96,6 +96,7 @@ Fishbone tree node element
 | Property       | Type           | Description             |
 |:--------------:|:--------------:|:-----------------------:|
 | items          | [FishboneNode](#fishbonenode)   | Fishbone tree root node |
+| layout         | [LayoutFunction]                | Fishbone layout function    |
 | reactFlowProps | [ReactFlowProps](https://reactflow.dev/api-reference/react-flow#common-props) | React flow props        |
 
 ### Dependencies
