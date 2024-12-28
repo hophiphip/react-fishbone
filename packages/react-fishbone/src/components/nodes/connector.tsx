@@ -169,18 +169,18 @@ function ConnectorNodeBase({
 						 * There are two cases, when edge is on
 						 *
 						 * 1. Top:                Y
-						 *                        |
-						 *            A,B _____   |_______ B
-						 *               |     |  |
-						 *                -----   |------- B + h -------|
-						 *                  |     |                     |
-						 *                  |     |                     |---- B + h - (b + h / 2)
-						 *  a,b _____       |     |_______ b            |
-						 *     |     |------|     |------- b + h/2 -----|
-						 *      -----             |
-						 *                        |
-						 *                        v
-						 *                        0
+						 *                         |
+						 *             A,B _____   |_______ B
+						 *                |     |  |
+						 *                 -----   |------- B + h -------|
+						 *                   |     |                     |
+						 *                   |     |                     |---- B + h - (b + h / 2)
+						 *   a,b _____       |     |_______ b            |
+						 *      |     |------|     |------- b + h/2 -----|
+						 *       -----             |
+						 *                         |
+						 *                         v
+						 *                         0
 						 *
 						 * 2. Bottom:              0
 						 *                         ^
@@ -216,18 +216,18 @@ function ConnectorNodeBase({
 						 *
 						 * 1. Top:                Y
 						 *                        |
-						 *            A,B _____   |_______ B
-						 *               |     |  |
-						 *                -----   |------- B + h -------|
-						 *                  |     |                     |
-						 *                  |     |                     |---- B + h - b
-						 *                  |     |                     |
-						 *              a,b *     |------- b -----------|
-						 *                 ***    |
-						 *                  *     |
-						 *                        |
-						 *                        v
-						 *                        0
+						 *             A,B _____   |_______ B
+						 *                |     |  |
+						 *                 -----   |------- B + h -------|
+						 *                   |     |                     |
+						 *                   |     |                     |---- B + h - b
+						 *                   |     |                     |
+						 *               a,b *     |------- b -----------|
+						 *                  ***    |
+						 *                   *     |
+						 *                         |
+						 *                         v
+						 *                         0
 						 *
 						 * 2. Bottom:              0
 						 *                         ^
@@ -249,10 +249,11 @@ function ConnectorNodeBase({
 						Math.abs(
 							edgeSourceNode.position.y -
 								edgeTargetNode.position.y +
+								connectorSize / 2 +
 								(isTop ? nodeHeight : 0) -
 								(isTop ? 0 : 2) * connectorSize,
 						)
-					: Math.abs(edgeSourceNode.position.x + nodeWidth - edgeTargetNode.position.x);
+					: Math.abs(edgeSourceNode.position.x + nodeWidth - edgeTargetNode.position.x + connectorSize / 2);
 
 				const [centerX, centerY] = getPartitionPoint(
 					isHorizontal
