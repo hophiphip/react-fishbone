@@ -9,14 +9,18 @@ import type { NodeData } from "../../types";
 const rootArrowStyle: CSSProperties = {
 	width: 0,
 	height: 0,
-	borderTop: "5px solid transparent",
-	borderBottom: "5px solid transparent",
-	borderRight: "5px solid transparent",
+	borderTop: "7px solid transparent",
+	borderBottom: "7px solid transparent",
+	borderRight: "7px solid transparent",
 	boxSizing: "border-box",
 	background: "transparent",
 	borderLeft: "20px solid black",
 	paddingRight: "0.5rem",
 	borderRadius: 0,
+};
+
+const nodeHandleStyle: CSSProperties = {
+	opacity: 0,
 };
 
 function NodeHandleBase({
@@ -44,11 +48,11 @@ function NodeHandleBase({
 
 		default:
 			return getIsHorizontal(data.depth) ? (
-				<Handle type="source" position={Position.Right} isConnectable={isConnectable} />
+				<Handle type="source" style={nodeHandleStyle} position={Position.Right} isConnectable={isConnectable} />
 			) : data.isTop ? (
-				<Handle type="source" position={Position.Bottom} isConnectable={isConnectable} />
+				<Handle type="source" style={nodeHandleStyle} position={Position.Bottom} isConnectable={isConnectable} />
 			) : (
-				<Handle type="source" position={Position.Top} isConnectable={isConnectable} />
+				<Handle type="source" style={nodeHandleStyle} position={Position.Top} isConnectable={isConnectable} />
 			);
 	}
 }
