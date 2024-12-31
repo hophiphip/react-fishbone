@@ -326,6 +326,9 @@ function ConnectorNodeBase({
 				type="target"
 				isConnectable={isConnectable}
 				position={isHorizontal ? Position.Left : isTop ? Position.Top : Position.Bottom}
+				style={{
+					opacity: 0,
+				}}
 			/>
 		</div>
 	);
