@@ -328,6 +328,10 @@ function ConnectorNodeBase({
 				position={isHorizontal ? Position.Left : isTop ? Position.Top : Position.Bottom}
 				style={{
 					opacity: 0,
+					width: 0,
+					height: 0,
+					minWidth: 0,
+					minHeight: 0,
 				}}
 			/>
 		</div>
