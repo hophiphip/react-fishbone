@@ -282,7 +282,10 @@ function ConnectorNodeBase({
 
 				return [
 					centerX - connectorSize / 2,
-					centerY - connectorSize / 2,
+					// NOTE: `connectorSize * (isTop ? 1 : 0.5)` fixes miscalcualtion of
+					// node handle position. This is just an ugly workaround for now.
+					// Will be remote after implementing layout logic in separate package (see: packages/fishbone-layout).
+					centerY - connectorSize * (isTop ? 1 : 0.5),
 					isHorizontal,
 					fromNode.data.isTop,
 				];
@@ -326,6 +329,13 @@ function ConnectorNodeBase({
 				type="target"
 				isConnectable={isConnectable}
 				position={isHorizontal ? Position.Left : isTop ? Position.Top : Position.Bottom}
+				style={{
+					opacity: 0,
+					width: connectorSize,
+					height: connectorSize,
+					minWidth: connectorSize,
+					minHeight: connectorSize,
+				}}
 			/>
 		</div>
 	);
