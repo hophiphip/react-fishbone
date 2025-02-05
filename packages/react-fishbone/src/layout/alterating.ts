@@ -1,4 +1,4 @@
-import { FishboneEdgeTypes } from "../components/edges";
+import { MarkerType } from "@xyflow/react";
 import { FishboneNodeTypes } from "../components/nodes";
 import { getIsHorizontal, nodesAngle, rootId, tailId, xGap, yGap } from "../const";
 import type { Connector, Edge, FishboneNode, MinMax, Node } from "../types";
@@ -98,7 +98,12 @@ function verticalNodeHandler(
 			id: `${childNode.id}-to-${connector.id}`,
 			source: childNode.id,
 			target: connector.id,
-			type: FishboneEdgeTypes.StraightEdge,
+			type: 'straight',
+			markerEnd: {
+				type: MarkerType.ArrowClosed,
+				height: 10,
+				width: 10,
+			}
 		};
 
 		connectors.push(connector);
@@ -212,7 +217,12 @@ function horizontalNodeHandler(
 			id: `${childNode.id}-to-${connector.id}`,
 			source: childNode.id,
 			target: connector.id,
-			type: FishboneEdgeTypes.StraightEdge,
+			type: 'straight',
+			markerEnd: {
+				type: MarkerType.ArrowClosed,
+				height: 10,
+				width: 10,
+			}
 		};
 
 		connectors.push(connector);
@@ -272,7 +282,7 @@ function getFishboneLayout(fishboneRoot: FishboneNode): [(Node | Connector)[], E
 		id: `${tailId}-to-${rootId}`,
 		source: tailId,
 		target: rootId,
-		type: FishboneEdgeTypes.StraightEdge,
+		type: 'straight',
 	};
 
 	edges.push(tailToRoot);
@@ -336,7 +346,12 @@ function getFishboneLayout(fishboneRoot: FishboneNode): [(Node | Connector)[], E
 				id: `${childNode.id}-to-${connector.id}`,
 				source: childNode.id,
 				target: connector.id,
-				type: FishboneEdgeTypes.StraightEdge,
+				type: 'straight',
+				markerEnd: {
+					type: MarkerType.ArrowClosed,
+					height: 10,
+					width: 10,
+				}
 			};
 
 			connectors.push(connector);
